@@ -1,0 +1,11 @@
+Package: kmod-crypto-seqiv
+Version: 5.10.161-1
+Depends: kernel (=5.10.161-1-2974fbe1fa59be88f13eb8abeac8c10b), kmod-crypto-aead, kmod-crypto-rng
+Source: package/kernel/linux
+SourceName: kmod-crypto-seqiv
+License: GPL-2.0
+Section: kernel
+SourceDateEpoch: 1672124723
+Architecture: mipsel_24kc
+Installed-Size: 1856
+Description:  CryptoAPI Sequence Number IV Generator

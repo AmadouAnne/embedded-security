@@ -1,0 +1,11 @@
+Package: kmod-crypto-sha256
+Version: 5.10.176-1
+Depends: kernel (=5.10.176-1-2d6f3ce75b5e7700b705cb00cd526063), kmod-crypto-hash
+Source: package/kernel/linux
+SourceName: kmod-crypto-sha256
+License: GPL-2.0
+Section: kernel
+SourceDateEpoch: 1679936281
+Architecture: mipsel_24kc
+Installed-Size: 5376
+Description:  SHA224 SHA256 digest CryptoAPI module

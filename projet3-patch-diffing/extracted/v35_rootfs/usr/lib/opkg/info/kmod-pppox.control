@@ -1,0 +1,11 @@
+Package: kmod-pppox
+Version: 5.10.176-1
+Depends: kernel (=5.10.176-1-2d6f3ce75b5e7700b705cb00cd526063), kmod-ppp
+Source: package/kernel/linux
+SourceName: kmod-pppox
+License: GPL-2.0
+Section: kernel
+SourceDateEpoch: 1679936281
+Architecture: mipsel_24kc
+Installed-Size: 1644
+Description:  Kernel helper module for PPPoE and PPTP support

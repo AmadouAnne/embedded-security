@@ -1,0 +1,3 @@
+/lib/firmware/mt7662.bin
+/lib/modules/5.10.161/mt76x2-common.ko
+/lib/firmware/mt7662_rom_patch.bin

@@ -1,0 +1,2 @@
+/lib/modules/5.10.161/cmac.ko
+/etc/modules.d/09-crypto-cmac

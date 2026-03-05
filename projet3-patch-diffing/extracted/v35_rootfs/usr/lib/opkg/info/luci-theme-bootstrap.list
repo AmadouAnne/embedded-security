@@ -1,0 +1,13 @@
+/www/luci-static/resources/view/bootstrap/sysauth.js
+/usr/lib/lua/luci/view/themes/bootstrap/sysauth.htm
+/www/luci-static/resources/menu-bootstrap.js
+/www/luci-static/bootstrap-dark
+/etc/uci-defaults/30_luci-theme-bootstrap
+/usr/lib/lua/luci/view/themes/bootstrap-light
+/www/luci-static/bootstrap/mobile.css
+/usr/lib/lua/luci/view/themes/bootstrap/header.htm
+/usr/lib/lua/luci/view/themes/bootstrap-dark
+/usr/lib/lua/luci/view/themes/bootstrap/footer.htm
+/www/luci-static/bootstrap-light
+/www/luci-static/bootstrap/favicon.png
+/www/luci-static/bootstrap/cascade.css

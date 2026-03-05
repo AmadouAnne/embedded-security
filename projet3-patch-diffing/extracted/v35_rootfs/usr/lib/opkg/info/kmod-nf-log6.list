@@ -1,0 +1,2 @@
+/etc/modules.d/nf-log6
+/lib/modules/5.10.176/nf_log_ipv6.ko

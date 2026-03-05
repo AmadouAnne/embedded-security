@@ -1,0 +1,12 @@
+Package: luci-app-firewall
+Version: git-23.093.42704-1c01c64
+Depends: libc, uci-firewall
+Source: feeds/luci/applications/luci-app-firewall
+SourceName: luci-app-firewall
+License: Apache-2.0
+Section: luci
+SourceDateEpoch: 1680523731
+Maintainer: OpenWrt LuCI community
+Architecture: all
+Installed-Size: 16968
+Description:  Firewall and Portforwarding application

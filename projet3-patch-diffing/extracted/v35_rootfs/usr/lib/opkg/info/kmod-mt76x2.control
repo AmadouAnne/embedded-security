@@ -1,0 +1,12 @@
+Package: kmod-mt76x2
+Version: 5.10.176+2022-09-06-d7054646-5
+Depends: kernel (=5.10.176-1-2d6f3ce75b5e7700b705cb00cd526063), kmod-mac80211, kmod-mt76x2-common
+Source: package/kernel/mt76
+SourceName: kmod-mt76x2
+License: GPLv2
+Section: kernel
+SourceDateEpoch: 1680171287
+Maintainer: Felix Fietkau <nbd@nbd.name>
+Architecture: mipsel_24kc
+Installed-Size: 7757
+Description:  MediaTek MT76x2 wireless driver

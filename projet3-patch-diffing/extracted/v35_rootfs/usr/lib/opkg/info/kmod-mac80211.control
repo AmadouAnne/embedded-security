@@ -1,0 +1,11 @@
+Package: kmod-mac80211
+Version: 5.10.176+5.15.92-1-1
+Depends: kernel (=5.10.176-1-2d6f3ce75b5e7700b705cb00cd526063), kmod-cfg80211, kmod-crypto-cmac, kmod-crypto-ccm, kmod-crypto-gcm, hostapd-common
+Source: package/kernel/mac80211
+SourceName: kmod-mac80211
+Section: kernel
+SourceDateEpoch: 1680461297
+Maintainer: Felix Fietkau <nbd@nbd.name>
+Architecture: mipsel_24kc
+Installed-Size: 317213
+Description:  Generic IEEE 802.11 Networking Stack (mac80211)

@@ -1,0 +1,12 @@
+Package: luci-base
+Version: git-22.361.69894-438c598
+Depends: libc, lua, luci-lib-nixio, luci-lib-ip, rpcd, libubus-lua, luci-lib-jsonc, liblucihttp-lua, luci-lib-base, rpcd-mod-file, rpcd-mod-luci, cgi-io
+Source: feeds/luci/modules/luci-base
+SourceName: luci-base
+License: MIT
+Section: luci
+SourceDateEpoch: 1672212022
+Maintainer: OpenWrt LuCI community
+Architecture: mipsel_24kc
+Installed-Size: 131887
+Description:  LuCI core libraries

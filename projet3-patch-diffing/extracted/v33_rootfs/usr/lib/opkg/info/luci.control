@@ -1,0 +1,12 @@
+Package: luci
+Version: git-20.074.84698-ead5e81
+Depends: libc, uhttpd, uhttpd-mod-ubus, luci-mod-admin-full, luci-theme-bootstrap, luci-app-firewall, luci-app-opkg, luci-proto-ppp, libiwinfo-lua, luci-proto-ipv6, rpcd-mod-rrdns
+Source: feeds/luci/collections/luci
+SourceName: luci
+License: Apache-2.0
+Section: luci
+SourceDateEpoch: 1584228698
+Maintainer: OpenWrt LuCI community
+Architecture: all
+Installed-Size: 105
+Description:  Standard OpenWrt set including full admin with ppp support and the default Bootstrap theme

@@ -1,0 +1,3 @@
+/lib/modules/5.10.161/sha256_generic.ko
+/lib/modules/5.10.161/libsha256.ko
+/etc/modules.d/09-crypto-sha256

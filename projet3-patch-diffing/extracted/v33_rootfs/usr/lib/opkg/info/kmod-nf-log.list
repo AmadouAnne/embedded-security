@@ -1,0 +1,3 @@
+/lib/modules/5.10.161/nf_log_ipv4.ko
+/etc/modules.d/nf-log
+/lib/modules/5.10.161/nf_log_common.ko

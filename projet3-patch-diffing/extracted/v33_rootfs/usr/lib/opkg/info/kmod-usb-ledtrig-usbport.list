@@ -1,0 +1,2 @@
+/etc/modules.d/50-usb-ledtrig-usbport
+/lib/modules/5.10.161/ledtrig-usbport.ko
