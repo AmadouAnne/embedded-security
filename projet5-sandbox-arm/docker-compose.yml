@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  arm-sandbox:
+    build: .
+    volumes:
+      - ./src/reports:/home/sandbox/src/reports
+      - ./src/samples:/home/sandbox/src/samples
+    environment:
+      - TERM=xterm-256color

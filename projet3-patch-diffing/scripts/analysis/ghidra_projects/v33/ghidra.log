@@ -1,0 +1,10 @@
+2026-03-05 05:30:15 INFO  (LoggingInitialization) Using log config file: jar:file:/opt/ghidra/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml  
+2026-03-05 05:30:15 INFO  (LoggingInitialization) Using log file: analysis/ghidra_projects/v33/ghidra.log  
+2026-03-05 05:30:15 INFO  (Preferences) Loading user preferences: /home/mercy/.config/ghidra/ghidra_12.0.3_DEV/preferences  
+2026-03-05 05:30:15 INFO  (Preferences) Loading previous preferences: /home/mercy/.config/ghidra/ghidra_12.0.1_DEV/preferences  
+2026-03-05 05:30:15 INFO  (ClassSearcher) Searching for classes...  
+2026-03-05 05:30:17 INFO  (ClassSearcher) Class search complete (1517 ms)  
+2026-03-05 05:30:17 INFO  (DefaultSSLContextInitializer) Initializing SSL Context  
+2026-03-05 05:30:17 INFO  (SecureRandomFactory) Initializing Random Number Generator...  
+2026-03-05 05:30:17 INFO  (SecureRandomFactory) Random Number Generator initialization complete: NativePRNGNonBlocking  
+2026-03-05 05:30:17 INFO  (DefaultTrustManagerFactory) Trust manager disabled, cacerts have not been set  

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    height: 627px;
+    font-family: 'Courier New', monospace;
+    background: #0a0e1a;
+    overflow: hidden;
+  }
+
+  /* Grid background */
+  .grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,120,255,0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,120,255,0.07) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Glow blobs */
+  .blob1 {
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,100,255,0.18) 0%, transparent 70%);
+    top: -150px; left: -100px;
+  }
+  .blob2 {
+    position: absolute;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,220,150,0.12) 0%, transparent 70%);
+    bottom: -100px; right: 100px;
+  }
+
+  /* Left accent bar */
+  .accent-bar {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: linear-gradient(to bottom, #0078ff, #00dc96);
+  }
+
+  /* Main container */
+  .card {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 55px 70px 55px 80px;
+  }
+
+  /* Top badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,120,255,0.15);
+    border: 1px solid rgba(0,120,255,0.4);
+    border-radius: 4px;
+    padding: 5px 14px;
+    margin-bottom: 28px;
+    width: fit-content;
+  }
+  .badge-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #00dc96;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .badge-text {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: #7ab8ff;
+    text-transform: uppercase;
+  }
+
+  /* Title */
+  .title {
+    font-family: 'Georgia', serif;
+    font-size: 42px;
+    font-weight: bold;
+    color: #ffffff;
+    line-height: 1.15;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .title span {
+    color: #0078ff;
+  }
+
+  .subtitle {
+    font-family: 'Georgia', serif;
+    font-size: 17px;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 36px;
+    font-style: italic;
+  }
+
+  /* The code diff — centrepiece */
+  .diff-block {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-left: 3px solid #0078ff;
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin-bottom: 36px;
+    width: fit-content;
+  }
+  .diff-line {
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    line-height: 1.8;
+  }
+  .diff-del {
+    color: #ff6b6b;
+  }
+  .diff-del::before { content: '− '; opacity: 0.6; }
+  .diff-add {
+    color: #00dc96;
+  }
+  .diff-add::before { content: '+ '; opacity: 0.6; }
+  .diff-cve {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    margin-top: 4px;
+    letter-spacing: 0.08em;
+  }
+
+  /* Tags */
+  .tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 36px;
+  }
+  .tag {
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 3px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .tag-blue  { background: rgba(0,120,255,0.2); color: #7ab8ff; border: 1px solid rgba(0,120,255,0.3); }
+  .tag-green { background: rgba(0,220,150,0.15); color: #00dc96; border: 1px solid rgba(0,220,150,0.3); }
+  .tag-gray  { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.1); }
+
+  /* Author */
+  .author-block {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0078ff, #00dc96);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: bold; color: white;
+    font-family: Georgia, serif;
+    flex-shrink: 0;
+  }
+  .author-name {
+    font-size: 14px;
+    color: rgba(255,255,255,0.85);
+    font-weight: bold;
+    font-family: Georgia, serif;
+  }
+  .author-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Right panel — stats */
+  .right-panel {
+    position: absolute;
+    right: 70px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    align-items: flex-end;
+  }
+  .stat-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 14px 20px;
+    text-align: right;
+    min-width: 160px;
+  }
+  .stat-value {
+    font-size: 26px;
+    font-weight: bold;
+    color: #ffffff;
+    font-family: Georgia, serif;
+    line-height: 1;
+  }
+  .stat-value.blue  { color: #0078ff; }
+  .stat-value.green { color: #00dc96; }
+  .stat-value.red   { color: #ff6b6b; }
+  .stat-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 4px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Bottom line */
+  .bottom-line {
+    position: absolute;
+    bottom: 22px;
+    left: 80px; right: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 14px;
+  }
+  .bottom-left {
+    font-size: 10px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .bottom-right {
+    font-size: 10px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.08em;
+  }
+</style>
+</head>
+<body>
+
+<div class="grid"></div>
+<div class="blob1"></div>
+<div class="blob2"></div>
+<div class="accent-bar"></div>
+
+<div class="card">
+
+  <div class="badge">
+    <div class="badge-dot"></div>
+    <span class="badge-text">Embedded Security · M1 UBO Brest · 2026</span>
+  </div>
+
+  <div class="title">IoT Firmware<br><span>Patch Diffing</span><br>& CVE Correlation</div>
+  <div class="subtitle">OpenWRT · MIPS/ARM · Ghidra · NVD/NIST</div>
+
+  <div class="diff-block">
+    <div class="diff-line diff-del">E('pre', delkey)</div>
+    <div class="diff-line diff-add">E('pre', [delkey])</div>
+    <div class="diff-cve">▸ CVE-2023-24182 · CVSS 5.4 · XSS stocké LuCI · CONFIRMÉ</div>
+  </div>
+
+  <div class="tags">
+    <span class="tag tag-blue">Binwalk</span>
+    <span class="tag tag-blue">Ghidra</span>
+    <span class="tag tag-blue">SHA-256 Diff</span>
+    <span class="tag tag-green">CVE Confirmed</span>
+    <span class="tag tag-gray">ACM sigconf</span>
+  </div>
+
+  <div class="author-block">
+    <div class="avatar">AT</div>
+    <div>
+      <div class="author-name">Amadou Tidiane Anne</div>
+      <div class="author-sub">Master 1 Embedded Security · Université de Bretagne Occidentale</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Right stats -->
+<div class="right-panel">
+  <div class="stat-card">
+    <div class="stat-value blue">150+</div>
+    <div class="stat-label">Fichiers analysés</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">81</div>
+    <div class="stat-label">Fonctions extraites</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value green">4</div>
+    <div class="stat-label">CVE corrélés</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value red">1</div>
+    <div class="stat-label">Ligne = le patch</div>
+  </div>
+</div>
+
+<!-- Bottom -->
+<div class="bottom-line">
+  <span class="bottom-left">Projet parallèle · Février 2026</span>
+  <span class="bottom-right">Binwalk · Ghidra · Python · NVD API · Jaccard Similarity</span>
+</div>
+
+</body>
+</html>

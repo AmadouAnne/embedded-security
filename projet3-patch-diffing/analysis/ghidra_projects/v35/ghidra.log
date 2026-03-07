@@ -1,0 +1,117 @@
+2026-03-05 05:33:41 INFO  (LoggingInitialization) Using log config file: jar:file:/opt/ghidra/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml  
+2026-03-05 05:33:41 INFO  (LoggingInitialization) Using log file: analysis/ghidra_projects/v35/ghidra.log  
+2026-03-05 05:33:41 INFO  (Preferences) Loading user preferences: /home/mercy/.config/ghidra/ghidra_12.0.3_DEV/preferences  
+2026-03-05 05:33:41 INFO  (Preferences) Loading previous preferences: /home/mercy/.config/ghidra/ghidra_12.0.1_DEV/preferences  
+2026-03-05 05:33:41 INFO  (ClassSearcher) Searching for classes...  
+2026-03-05 05:33:43 INFO  (ClassSearcher) Class search complete (1494 ms)  
+2026-03-05 05:33:43 INFO  (DefaultSSLContextInitializer) Initializing SSL Context  
+2026-03-05 05:33:43 INFO  (SecureRandomFactory) Initializing Random Number Generator...  
+2026-03-05 05:33:43 INFO  (SecureRandomFactory) Random Number Generator initialization complete: NativePRNGNonBlocking  
+2026-03-05 05:33:43 INFO  (DefaultTrustManagerFactory) Trust manager disabled, cacerts have not been set  
+2026-03-05 05:33:44 INFO  (AnalyzeHeadless) Headless startup complete (3289 ms)  
+2026-03-05 05:33:44 INFO  (ClassSearcher) Class searcher loaded 58 extension points (18 false positives)  
+2026-03-05 05:33:44 INFO  (HeadlessAnalyzer) HEADLESS Script Paths:
+    /opt/ghidra/Ghidra/Features/GnuDemangler/ghidra_scripts
+    /opt/ghidra/Ghidra/Processors/JVM/ghidra_scripts
+    /opt/ghidra/Ghidra/Debug/Debugger-rmi-trace/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/MicrosoftCodeAnalyzer/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/VersionTracking/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/PyGhidra/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/SwiftDemangler/ghidra_scripts
+    /opt/ghidra/Ghidra/Processors/Atmel/ghidra_scripts
+    /opt/ghidra/Ghidra/Debug/Debugger/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/Decompiler/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/FunctionID/ghidra_scripts
+    /opt/ghidra/Ghidra/Processors/PIC/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/BSim/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/BytePatterns/ghidra_scripts
+    /home/mercy/Documents/Projet/embedded-security/projet3-patch-diffing/scripts
+    /opt/ghidra/Ghidra/Features/SystemEmulation/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/WildcardAssembler/ghidra_scripts
+    /opt/ghidra/Ghidra/Processors/DATA/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/DecompilerDependent/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/Jython/ghidra_scripts
+    /home/mercy/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/Base/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/PDB/ghidra_scripts
+    /opt/ghidra/Ghidra/Processors/8051/ghidra_scripts
+    /opt/ghidra/Ghidra/Features/FileFormats/ghidra_scripts  
+2026-03-05 05:33:44 INFO  (HeadlessAnalyzer) HEADLESS: execution starts  
+2026-03-05 05:33:44 INFO  (HeadlessAnalyzer) Creating project: /home/mercy/Documents/Projet/embedded-security/projet3-patch-diffing/analysis/ghidra_projects/v35/proj_libuclient_v35  
+2026-03-05 05:33:44 INFO  (DefaultProject) Creating project: /home/mercy/Documents/Projet/embedded-security/projet3-patch-diffing/analysis/ghidra_projects/v35/proj_libuclient_v35  
+2026-03-05 05:33:44 INFO  (HeadlessAnalyzer) REPORT: Processing input files:   
+2026-03-05 05:33:44 INFO  (HeadlessAnalyzer)      project: /home/mercy/Documents/Projet/embedded-security/projet3-patch-diffing/analysis/ghidra_projects/v35/proj_libuclient_v35  
+2026-03-05 05:33:44 INFO  (HeadlessAnalyzer) IMPORTING: file:///home/mercy/Documents/Projet/embedded-security/projet3-patch-diffing/analysis/libuclient/libuclient_v35.so  
+2026-03-05 05:33:45 INFO  (ProgramLoader) Using Loader: Executable and Linking Format (ELF)  
+2026-03-05 05:33:45 INFO  (ProgramLoader) Using Language/Compiler: MIPS:LE:32:default:default  
+2026-03-05 05:33:45 INFO  (ProgramLoader) Using Library Search Path: [., /bin, /lib, /lib64, /lib/x86_64-linux-gnu, /lib/aarch64-linux-gnu, /usr/bin, /usr/lib, /usr/X11R6/bin, /usr/X11R6/lib, /usr/java/packages/lib, /usr/lib64]  
+2026-03-05 05:33:46 INFO  (ProgramLoader) Additional info:
+Loading file:///home/mercy/Documents/Projet/embedded-security/projet3-patch-diffing/analysis/libuclient/libuclient_v35.so?MD5=f344e929e0b4e862c121d0f06e704e37...
+_mips_gp0_value=0x1bff0
+Setting block segment_3 to read-only (block split was required)
+------------------------------------------------
+
+Linking the External Programs of 'libuclient_v35.so' to imported libraries...
+  [libubox.so.20220515] -> not found in project
+  [libgcc_s.so.1] -> not found in project
+  [libc.so] -> not found in project
+------------------------------------------------
+
+Resolving External Symbols of [/libuclient_v35.so] - 51 unresolved symbols, no external libraries configured - skipping
+  
+2026-03-05 05:33:46 INFO  (HeadlessAnalyzer) IMPORTING: Loaded 0 additional files  
+2026-03-05 05:33:46 INFO  (HeadlessAnalyzer) ANALYZING all memory and code: file:///home/mercy/Documents/Projet/embedded-security/projet3-patch-diffing/analysis/libuclient/libuclient_v35.so  
+2026-03-05 05:33:47 DEBUG (FidAnalyzer) No FID Libraries apply for language MIPS:LE:32:default  
+2026-03-05 05:33:47 INFO  (PackedDatabaseCache) Packed database cache: /var/tmp/mercy-ghidra/packed-db-cache  
+2026-03-05 05:33:47 DEBUG (PackedDatabaseCache) Using cached packed database: /opt/ghidra/Ghidra/Features/Base/data/typeinfo/generic/generic_clib.gdt  
+2026-03-05 05:33:48 INFO  (ApplyDataArchiveAnalyzer) Applied data type archive: generic_clib  
+2026-03-05 05:33:49 INFO  (AutoAnalysisManager) -----------------------------------------------------
+    ASCII Strings                              0.469 secs
+    Apply Data Archives                        0.789 secs
+    Call Convention ID                         0.322 secs
+    Call-Fixup Installer                       0.003 secs
+    Create Address Tables                      0.036 secs
+    Create Address Tables - One Time           0.009 secs
+    Create Function                            0.004 secs
+    Data Reference                             0.023 secs
+    Decompiler Switch Analysis                 0.003 secs
+    Demangler GNU                              0.058 secs
+    Disassemble Entry Points                   0.357 secs
+    Embedded Media                             0.015 secs
+    External Entry References                  0.001 secs
+    Function ID                                0.025 secs
+    Function Start Search                      0.035 secs
+    MIPS Constant Reference Analyzer           0.343 secs
+    MIPS Symbol                                0.006 secs
+    MIPS UnAlligned Instruction Fix            0.005 secs
+    Non-Returning Functions - Discovered       0.002 secs
+    Non-Returning Functions - Known            0.005 secs
+    Reference                                  0.029 secs
+    Shared Return Calls                        0.014 secs
+    Stack                                      0.119 secs
+    Subroutine References                      0.095 secs
+    Subroutine References - One Time           0.001 secs
+-----------------------------------------------------
+     Total Time   2 secs
+-----------------------------------------------------
+  
+2026-03-05 05:33:49 INFO  (HeadlessAnalyzer) REPORT: Analysis succeeded for file: file:///home/mercy/Documents/Projet/embedded-security/projet3-patch-diffing/analysis/libuclient/libuclient_v35.so  
+2026-03-05 05:33:49 INFO  (HeadlessAnalyzer) REPORT: Execute script: GhidraFunctionHasher.py   
+2026-03-05 05:33:49 ERROR (HeadlessAnalyzer) REPORT SCRIPT ERROR: GhidraFunctionHasher.py : Ghidra was not started with PyGhidra. Python is not available ghidra.app.script.GhidraScriptLoadException: Ghidra was not started with PyGhidra. Python is not available
+	at ghidra.pyghidra.PyGhidraScriptProvider.getScriptInstance(PyGhidraScriptProvider.java:75)
+	at ghidra.app.util.headless.HeadlessAnalyzer.runScriptsList(HeadlessAnalyzer.java:924)
+	at ghidra.app.util.headless.HeadlessAnalyzer.analyzeProgram(HeadlessAnalyzer.java:1086)
+	at ghidra.app.util.headless.HeadlessAnalyzer.processFileWithImport(HeadlessAnalyzer.java:1584)
+	at ghidra.app.util.headless.HeadlessAnalyzer.processWithLoader(HeadlessAnalyzer.java:1744)
+	at ghidra.app.util.headless.HeadlessAnalyzer.processWithImport(HeadlessAnalyzer.java:1685)
+	at ghidra.app.util.headless.HeadlessAnalyzer.processWithImport(HeadlessAnalyzer.java:1769)
+	at ghidra.app.util.headless.HeadlessAnalyzer.processLocal(HeadlessAnalyzer.java:462)
+	at ghidra.app.util.headless.AnalyzeHeadless.launch(AnalyzeHeadless.java:199)
+	at ghidra.GhidraLauncher.launch(GhidraLauncher.java:81)
+	at ghidra.Ghidra.main(Ghidra.java:54)
+ 
+2026-03-05 05:33:49 INFO  (HeadlessAnalyzer) ANALYZING changes made by post scripts: file:///home/mercy/Documents/Projet/embedded-security/projet3-patch-diffing/analysis/libuclient/libuclient_v35.so  
+2026-03-05 05:33:49 INFO  (HeadlessAnalyzer) REPORT: Post-analysis succeeded for file: file:///home/mercy/Documents/Projet/embedded-security/projet3-patch-diffing/analysis/libuclient/libuclient_v35.so  
+2026-03-05 05:33:49 INFO  (LocalFileSystem) /libuclient_v35.so: file created (mercy)  
+2026-03-05 05:33:49 INFO  (HeadlessAnalyzer) REPORT: Save succeeded for: /libuclient_v35.so (proj_libuclient_v35:/libuclient_v35.so)  
+2026-03-05 05:33:49 INFO  (HeadlessAnalyzer) REPORT: Import succeeded  
