@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+src/reports/*.json
+src/samples/malware_arm_bin
+.DS_Store
+.env

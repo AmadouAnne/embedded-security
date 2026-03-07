@@ -3,6 +3,8 @@ version: '3.8'
 services:
   arm-sandbox:
     build: .
+    # ISOLATION RÉSEAU : Le malware ne peut pas sortir sur Internet
+    network_mode: "none" 
     volumes:
       - ./src/reports:/home/sandbox/src/reports
       - ./src/samples:/home/sandbox/src/samples
