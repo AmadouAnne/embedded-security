@@ -3,543 +3,189 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ARM Threat Sandbox — Security Intelligence Platform</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>ARM Sandbox v2 — Security Intelligence Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:        #080b0f;
-  --surface:   #0d1117;
-  --border:    #1c2333;
-  --border2:   #2a3447;
-  --text:      #c9d1d9;
-  --muted:     #484f58;
-  --accent:    #ff3c5c;
-  --accent2:   #00d4ff;
-  --warn:      #f79c00;
-  --ok:        #00e676;
-  --mono:      'Space Mono', monospace;
-  --sans:      'Syne', sans-serif;
+  --bg:#080b0f; --surface:#0d1117; --surface2:#111820;
+  --border:#1c2333; --border2:#2a3447;
+  --text:#c9d1d9; --muted:#484f58;
+  --accent:#ff3c5c; --accent2:#00d4ff; --accent3:#a78bfa;
+  --warn:#f79c00; --ok:#00e676;
+  --mono:'Space Mono',monospace; --sans:'Syne',sans-serif;
 }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* HEADER */
+header{position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border);background:rgba(8,11,15,.96);backdrop-filter:blur(20px);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:13px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),#ff6b35);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.header-right{display:flex;align-items:center;gap:20px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.dot{width:7px;height:7px;background:var(--ok);border-radius:50%;box-shadow:0 0 8px var(--ok);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);padding:0 40px;position:sticky;top:64px;z-index:99}
+.tab{font-family:var(--mono);font-size:12px;letter-spacing:.08em;padding:14px 20px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .2s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent2);border-bottom-color:var(--accent2)}
 
-/* Grid de fond animé */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
-  z-index: 0;
-}
+/* MAIN */
+main{position:relative;z-index:1;max-width:1300px;margin:0 auto;padding:40px}
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
-/* Glow en haut à droite */
-body::after {
-  content: '';
-  position: fixed;
-  top: -200px;
-  right: -200px;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(255,60,92,0.08) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:36px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;position:relative;overflow:hidden;transition:border-color .2s}
+.stat-card:hover{border-color:var(--border2)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-card.red::before{background:var(--accent)}
+.stat-card.blue::before{background:var(--accent2)}
+.stat-card.green::before{background:var(--ok)}
+.stat-card.purple::before{background:var(--accent3)}
+.stat-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.stat-value{font-size:32px;font-weight:800;color:#fff;line-height:1}
+.stat-sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px}
 
-/* ===== HEADER ===== */
-header {
-  position: relative;
-  z-index: 10;
-  border-bottom: 1px solid var(--border);
-  background: rgba(8,11,15,0.95);
-  backdrop-filter: blur(20px);
-  padding: 0 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 64px;
-  position: sticky;
-  top: 0;
-}
+/* BATCH PANEL */
+.batch-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;margin-bottom:32px}
+.batch-title{font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.samples-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:20px}
+.sample-item{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s;user-select:none}
+.sample-item:hover{border-color:var(--accent2);background:rgba(0,212,255,.04)}
+.sample-item.selected{border-color:var(--accent2);background:rgba(0,212,255,.08)}
+.sample-check{width:16px;height:16px;border:1px solid var(--border2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .15s;flex-shrink:0}
+.sample-item.selected .sample-check{background:var(--accent2);border-color:var(--accent2);color:#000}
+.sample-name{font-family:var(--mono);font-size:11px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sample-size{font-family:var(--mono);font-size:10px;color:var(--muted);flex-shrink:0}
+.sample-analyzed{width:6px;height:6px;border-radius:50%;background:var(--ok);flex-shrink:0}
+.sample-unanalyzed{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0}
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--mono);
-  font-size: 13px;
-  letter-spacing: 0.05em;
-  color: var(--text);
-}
+/* BUTTONS */
+.btn-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn{font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:var(--accent2);color:#000;font-weight:700}
+.btn-primary:hover{background:#33deff}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border2)}
+.btn-ghost:hover{border-color:var(--text)}
+.btn-danger{background:rgba(255,60,92,.1);color:var(--accent);border:1px solid rgba(255,60,92,.2)}
+.btn-danger:hover{background:rgba(255,60,92,.2)}
 
-.logo-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, var(--accent), #ff6b35);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-}
+/* PROGRESS JOBS */
+.jobs-container{margin-top:20px}
+.job-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px}
+.job-name{font-family:var(--mono);font-size:12px;color:var(--text);flex:1}
+.job-progress-bar{flex:2;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.job-progress-fill{height:100%;border-radius:2px;background:var(--accent2);transition:width .3s ease}
+.job-pct{font-family:var(--mono);font-size:11px;color:var(--muted);width:36px;text-align:right}
+.job-status{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:3px;letter-spacing:.06em}
+.job-status.queued{background:rgba(71,82,196,.15);color:#7986cb}
+.job-status.running{background:rgba(0,212,255,.1);color:var(--accent2)}
+.job-status.done{background:rgba(0,230,118,.1);color:var(--ok)}
+.job-status.error{background:rgba(255,60,92,.1);color:var(--accent)}
 
-.logo span { color: var(--muted); }
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--border2);border-radius:10px;padding:40px;text-align:center;transition:all .2s;cursor:pointer;margin-bottom:20px}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent2);background:rgba(0,212,255,.03)}
+.upload-icon{font-size:32px;margin-bottom:12px;opacity:.5}
+.upload-text{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.upload-text strong{color:var(--accent2)}
 
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--muted);
-}
+/* SECTION LABEL */
+.section-label{font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
 
-.status-dot {
-  width: 7px;
-  height: 7px;
-  background: var(--ok);
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--ok);
-  animation: pulse 2s ease-in-out infinite;
-}
+/* REPORT CARDS */
+.report-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:20px;overflow:hidden;transition:all .2s}
+.report-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.report-card.risk-low{border-left:3px solid var(--ok)}
+.report-card.risk-medium{border-left:3px solid var(--warn)}
+.report-card.risk-high{border-left:3px solid #ff6b00}
+.report-card.risk-critical{border-left:3px solid var(--accent)}
+.card-header{padding:22px 26px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--border);gap:20px}
+.card-target{font-family:var(--mono);font-size:16px;font-weight:700;color:#fff;display:flex;align-items:center;gap:10px}
+.arch-badge{font-size:10px;background:rgba(167,139,250,.1);color:var(--accent3);border:1px solid rgba(167,139,250,.2);border-radius:4px;padding:2px 8px;letter-spacing:.06em}
+.packer-badge{font-size:10px;background:rgba(255,60,92,.1);color:var(--accent);border:1px solid rgba(255,60,92,.2);border-radius:4px;padding:2px 8px;letter-spacing:.06em}
+.card-meta{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:5px}
+.score-block{text-align:right;flex-shrink:0}
+.score-number{font-family:var(--mono);font-size:40px;font-weight:700;line-height:1}
+.score-number.low{color:var(--ok)}.score-number.medium{color:var(--warn)}.score-number.high{color:#ff6b00}.score-number.critical{color:var(--accent)}
+.score-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-top:4px}
+.score-bar{width:110px;height:3px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+.score-fill{height:100%;border-radius:2px;transition:width 1s ease}
+.score-fill.low{background:var(--ok)}.score-fill.medium{background:var(--warn)}.score-fill.high{background:#ff6b00}.score-fill.critical{background:var(--accent)}
+.card-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.analysis-section{padding:18px 22px;border-right:1px solid var(--border)}
+.analysis-section:last-child{border-right:none}
+.sec-title{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
+.metric-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03);font-family:var(--mono);font-size:11px}
+.metric-row:last-child{border-bottom:none}
+.metric-key{color:var(--muted)}.metric-val{color:var(--text);font-weight:700}
+.metric-val.ok{color:var(--ok)}.metric-val.warn{color:var(--warn)}.metric-val.bad{color:var(--accent)}
+.alert-item{background:rgba(247,156,0,.06);border:1px solid rgba(247,156,0,.15);border-radius:5px;padding:6px 9px;margin-bottom:5px;font-family:var(--mono);font-size:10px;color:var(--warn);word-break:break-all;line-height:1.5}
+.mitre-badge{display:flex;align-items:center;gap:6px;background:rgba(255,60,92,.08);border:1px solid rgba(255,60,92,.2);border-radius:4px;padding:4px 8px;font-family:var(--mono);font-size:10px;color:var(--accent);margin-bottom:4px}
+.ioc-tag{display:inline-block;background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.15);border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:10px;color:var(--accent2);margin:2px 2px 2px 0}
+.no-data{font-family:var(--mono);font-size:11px;color:var(--muted)}
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.85); }
-}
+/* API DOC */
+.api-block{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px}
+.api-method{font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-right:10px}
+.api-method.get{background:rgba(0,230,118,.15);color:var(--ok)}
+.api-method.post{background:rgba(0,212,255,.15);color:var(--accent2)}
+.api-path{font-family:var(--mono);font-size:13px;color:var(--text)}
+.api-desc{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px}
+.api-example{background:rgba(0,0,0,.4);border-radius:6px;padding:12px;margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--text);overflow-x:auto}
 
-/* ===== MAIN ===== */
-main {
-  position: relative;
-  z-index: 1;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 48px 40px;
-}
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:20px 40px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:40px}
 
-/* ===== PAGE TITLE ===== */
-.page-title {
-  margin-bottom: 48px;
-  animation: fadeUp 0.6s ease both;
-}
+#toast{position:fixed;bottom:24px;right:24px;z-index:999;font-family:var(--mono);font-size:12px;padding:12px 18px;border-radius:8px;background:var(--surface);border:1px solid var(--border2);color:var(--text);display:none;animation:slideIn .3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-.page-title h1 {
-  font-size: clamp(28px, 4vw, 42px);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: #fff;
-}
-
-.page-title h1 em {
-  font-style: normal;
-  color: var(--accent);
-}
-
-.page-title p {
-  margin-top: 10px;
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 0.05em;
-}
-
-/* ===== STAT CARDS ===== */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 40px;
-  animation: fadeUp 0.6s ease 0.1s both;
-}
-
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.2s;
-}
-
-.stat-card:hover { border-color: var(--border2); }
-
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-}
-
-.stat-card.red::before   { background: var(--accent); }
-.stat-card.blue::before  { background: var(--accent2); }
-.stat-card.green::before { background: var(--ok); }
-.stat-card.orange::before{ background: var(--warn); }
-
-.stat-label {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-
-.stat-value {
-  font-size: 32px;
-  font-weight: 800;
-  color: #fff;
-  line-height: 1;
-}
-
-.stat-sub {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 6px;
-}
-
-/* ===== REPORT CARDS ===== */
-.section-label {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.section-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-.report-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  margin-bottom: 24px;
-  overflow: hidden;
-  animation: fadeUp 0.6s ease both;
-  transition: border-color 0.2s, transform 0.2s;
-}
-
-.report-card:hover {
-  border-color: var(--border2);
-  transform: translateY(-2px);
-}
-
-/* Barre de couleur dynamique selon le risk */
-.report-card.risk-low    { border-left: 3px solid var(--ok); }
-.report-card.risk-medium { border-left: 3px solid var(--warn); }
-.report-card.risk-high   { border-left: 3px solid #ff6b00; }
-.report-card.risk-critical { border-left: 3px solid var(--accent); }
-
-/* Header de la card */
-.card-header {
-  padding: 24px 28px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-  gap: 20px;
-}
-
-.card-title-block { flex: 1; }
-
-.card-target {
-  font-family: var(--mono);
-  font-size: 18px;
-  font-weight: 700;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.card-target .tag {
-  font-size: 10px;
-  background: rgba(0,212,255,0.1);
-  color: var(--accent2);
-  border: 1px solid rgba(0,212,255,0.2);
-  border-radius: 4px;
-  padding: 2px 8px;
-  letter-spacing: 0.08em;
-}
-
-.card-meta {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 6px;
-}
-
-/* Score gauge */
-.score-block {
-  text-align: right;
-  flex-shrink: 0;
-}
-
-.score-number {
-  font-family: var(--mono);
-  font-size: 42px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--ok);
-}
-
-.score-number.medium { color: var(--warn); }
-.score-number.high   { color: #ff6b00; }
-.score-number.critical { color: var(--accent); }
-
-.score-label {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin-top: 4px;
-}
-
-.score-bar {
-  width: 120px;
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  margin-top: 8px;
-  overflow: hidden;
-}
-
-.score-fill {
-  height: 100%;
-  border-radius: 2px;
-  background: var(--ok);
-  transition: width 1s ease;
-}
-
-.score-fill.medium { background: var(--warn); }
-.score-fill.high   { background: #ff6b00; }
-.score-fill.critical { background: var(--accent); }
-
-/* Grid des sections */
-.card-body {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0;
-}
-
-.analysis-section {
-  padding: 20px 24px;
-  border-right: 1px solid var(--border);
-}
-
-.analysis-section:last-child { border-right: none; }
-
-.section-title {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.section-icon { font-size: 12px; }
-
-.metric-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  font-family: var(--mono);
-  font-size: 12px;
-}
-
-.metric-row:last-child { border-bottom: none; }
-.metric-key { color: var(--muted); }
-.metric-val { color: var(--text); font-weight: 700; }
-.metric-val.ok   { color: var(--ok); }
-.metric-val.warn { color: var(--warn); }
-.metric-val.bad  { color: var(--accent); }
-
-/* Alertes */
-.alert-item {
-  background: rgba(247,156,0,0.06);
-  border: 1px solid rgba(247,156,0,0.15);
-  border-radius: 6px;
-  padding: 8px 10px;
-  margin-bottom: 6px;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--warn);
-  word-break: break-all;
-  line-height: 1.5;
-}
-
-.alert-item::before {
-  content: '⚠ ';
-  font-size: 10px;
-}
-
-.no-alert {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* MITRE badges */
-.mitre-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255,60,92,0.08);
-  border: 1px solid rgba(255,60,92,0.2);
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--accent);
-  margin-bottom: 5px;
-  width: 100%;
-}
-
-.mitre-name {
-  color: var(--text);
-  font-size: 10px;
-}
-
-/* IOC block */
-.ioc-tag {
-  display: inline-block;
-  background: rgba(0,212,255,0.07);
-  border: 1px solid rgba(0,212,255,0.15);
-  border-radius: 4px;
-  padding: 2px 8px;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--accent2);
-  margin: 2px 2px 2px 0;
-}
-
-/* Empty state */
-.empty-state {
-  text-align: center;
-  padding: 80px 40px;
-  animation: fadeUp 0.6s ease both;
-}
-
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  opacity: 0.4;
-}
-
-.empty-state h2 {
-  font-weight: 600;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-
-.empty-state p {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--muted);
-  opacity: 0.6;
-}
-
-/* Footer */
-footer {
-  position: relative;
-  z-index: 1;
-  border-top: 1px solid var(--border);
-  padding: 20px 40px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 40px;
-}
-
-/* Animations */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.report-card:nth-child(1) { animation-delay: 0.1s; }
-.report-card:nth-child(2) { animation-delay: 0.2s; }
-.report-card:nth-child(3) { animation-delay: 0.3s; }
-
-@media (max-width: 900px) {
-  .stats-row { grid-template-columns: repeat(2, 1fr); }
-  .card-body  { grid-template-columns: 1fr; }
-  .analysis-section { border-right: none; border-bottom: 1px solid var(--border); }
-  main { padding: 24px 20px; }
+@media(max-width:900px){
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .card-body{grid-template-columns:1fr}
+  .analysis-section{border-right:none;border-bottom:1px solid var(--border)}
+  main{padding:20px}
+  header{padding:0 20px}
 }
 </style>
 </head>
-
 <body>
 
-<!-- ===== HEADER ===== -->
 <header>
   <div class="logo">
     <div class="logo-icon">🛡</div>
-    ARM<span>/</span>SANDBOX
+    ARM<span style="color:var(--muted)">/</span>SANDBOX
     <span style="color:var(--border2)">|</span>
-    <span>Security Intelligence Platform</span>
+    <span style="color:var(--muted)">v2.0 — Multi-Arch</span>
   </div>
   <div class="header-right">
-    <div style="display:flex;align-items:center;gap:6px">
-      <div class="status-dot"></div>
-      SANDBOX ONLINE
-    </div>
-    <span>v1.0.0</span>
+    <div style="display:flex;align-items:center;gap:6px"><div class="dot"></div>ONLINE</div>
+    <span id="arch-status">ARM · MIPS · PPC</span>
     <span>UBO M1 LSE</span>
   </div>
 </header>
 
-<!-- ===== MAIN ===== -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('reports')">📊 Rapports</div>
+  <div class="tab" onclick="switchTab('analyze')">⚡ Analyser</div>
+  <div class="tab" onclick="switchTab('api')">🔌 API</div>
+</div>
+
 <main>
 
-  <!-- Title -->
-  <div class="page-title">
-    <h1>Threat Analysis <em>Reports</em></h1>
-    <p>// ARM BINARY ANALYSIS — QEMU ISOLATED SANDBOX — MITRE ATT&CK CORRELATION</p>
-  </div>
+<!-- ═══ TAB REPORTS ═══ -->
+<div class="tab-content active" id="tab-reports">
 
-  <!-- Stats -->
   {% set total = reports | length %}
-  {% set critical_count = reports | selectattr('risk.level', 'equalto', 'CRITICAL') | list | length %}
-  {% set high_count = reports | selectattr('risk.level', 'equalto', 'HIGH') | list | length %}
-  {% set avg_score = (reports | map(attribute='risk.score') | sum / total) | round(0) if total > 0 else 0 %}
+  {% set critical_count = reports | selectattr('risk.level','equalto','CRITICAL') | list | length %}
+  {% set high_count     = reports | selectattr('risk.level','equalto','HIGH')     | list | length %}
+  {% set avg_score      = (reports | map(attribute='risk.score') | sum / total) | round(0) if total > 0 else 0 %}
 
   <div class="stats-row">
     <div class="stat-card blue">
@@ -548,195 +194,364 @@ footer {
       <div class="stat-sub">binaires analysés</div>
     </div>
     <div class="stat-card red">
-      <div class="stat-label">Critical Threats</div>
+      <div class="stat-label">Critical</div>
       <div class="stat-value">{{ critical_count }}</div>
-      <div class="stat-sub">score > 80/100</div>
+      <div class="stat-sub">score > 80</div>
     </div>
-    <div class="stat-card orange">
+    <div class="stat-card purple">
       <div class="stat-label">High Risk</div>
       <div class="stat-value">{{ high_count }}</div>
       <div class="stat-sub">score 51-80</div>
     </div>
     <div class="stat-card green">
-      <div class="stat-label">Avg Risk Score</div>
+      <div class="stat-label">Avg Score</div>
       <div class="stat-value">{{ avg_score }}</div>
       <div class="stat-sub">moyenne globale</div>
     </div>
   </div>
 
-  <!-- Reports -->
   <div class="section-label">Rapports d'analyse</div>
 
   {% if reports %}
-    {% for report in reports %}
-
-      {% set level = report.risk.level | lower %}
-      {% set score = report.risk.score %}
-
-      <div class="report-card risk-{{ level }}">
-
-        <!-- Card Header -->
-        <div class="card-header">
-          <div class="card-title-block">
-            <div class="card-target">
-              {{ report.meta.target }}
-              <span class="tag">ARM ELF</span>
-            </div>
-            <div class="card-meta">
-              {{ report.meta.timestamp[:19] | replace('T', ' ') }}
-              &nbsp;·&nbsp;
-              {{ report.meta.sandbox }}
-            </div>
+    {% for r in reports %}
+    {% set level = r.risk.level | lower %}
+    {% set score = r.risk.score %}
+    <div class="report-card risk-{{ level }}">
+      <div class="card-header">
+        <div>
+          <div class="card-target">
+            {{ r.meta.target }}
+            {% if r.static_analysis.arch is defined and r.static_analysis.arch %}
+              <span class="arch-badge">{{ r.static_analysis.arch }}</span>
+            {% endif %}
+            {% if r.static_analysis.is_packed %}
+              <span class="packer-badge">PACKED{% if r.static_analysis.packer %} · {{ r.static_analysis.packer }}{% endif %}</span>
+            {% endif %}
           </div>
-
-          <div class="score-block">
-            <div class="score-number {{ level }}">{{ score }}</div>
-            <div class="score-label">/ 100 &nbsp;·&nbsp; {{ report.risk.level }}</div>
-            <div class="score-bar">
-              <div class="score-fill {{ level }}" style="width:{{ score }}%"></div>
-            </div>
+          <div class="card-meta">{{ r.meta.timestamp[:19] | replace('T',' ') }} · {{ r.meta.sandbox }}</div>
+        </div>
+        <div class="score-block">
+          <div class="score-number {{ level }}">{{ score }}</div>
+          <div class="score-label">/ 100 · {{ r.risk.level }}</div>
+          <div class="score-bar"><div class="score-fill {{ level }}" style="width:{{ score }}%"></div></div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="analysis-section">
+          <div class="sec-title">◈ Statique</div>
+          <div class="metric-row"><span class="metric-key">Arch</span><span class="metric-val" style="color:var(--accent3)">{{ r.static_analysis.get('arch','ARM') if r.static_analysis.get else r.static_analysis.arch | default('ARM') }}</span></div>
+          <div class="metric-row"><span class="metric-key">Entropie</span>
+            <span class="metric-val {% if r.static_analysis.entropy > 7 %}bad{% elif r.static_analysis.entropy > 6 %}warn{% else %}ok{% endif %}">{{ r.static_analysis.entropy }}</span></div>
+          <div class="metric-row"><span class="metric-key">Packed</span>
+            <span class="metric-val {% if r.static_analysis.is_packed %}bad{% else %}ok{% endif %}">{{ 'OUI' if r.static_analysis.is_packed else 'NON' }}</span></div>
+          <div class="metric-row"><span class="metric-key">Verdict</span><span class="metric-val">{{ r.static_analysis.verdict }}</span></div>
+          {% if r.ioc.files_accessed %}
+          <div style="margin-top:12px">
+            {% for f in r.ioc.files_accessed %}<span class="ioc-tag">{{ f }}</span>{% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        <div class="analysis-section">
+          <div class="sec-title">◈ Dynamique</div>
+          <div class="metric-row"><span class="metric-key">Syscalls</span><span class="metric-val">{{ r.dynamic_analysis.syscalls_count }}</span></div>
+          <div class="metric-row"><span class="metric-key">Alertes</span>
+            <span class="metric-val {% if r.dynamic_analysis.alerts %}bad{% else %}ok{% endif %}">{{ r.dynamic_analysis.alerts | length }}</span></div>
+          <div class="metric-row"><span class="metric-key">Risk +pts</span>
+            <span class="metric-val {% if r.dynamic_analysis.risk_score > 0 %}warn{% else %}ok{% endif %}">+{{ r.dynamic_analysis.risk_score }}</span></div>
+          <div style="margin-top:12px">
+            {% for alert in r.dynamic_analysis.alerts[:3] %}
+              <div class="alert-item">{{ alert[:120] }}</div>
+            {% endfor %}
+            {% if r.dynamic_analysis.alerts | length > 3 %}
+              <div class="no-data">+{{ r.dynamic_analysis.alerts|length - 3 }} alertes...</div>
+            {% endif %}
+            {% if not r.dynamic_analysis.alerts %}
+              <div class="no-data">✓ Aucune alerte</div>
+            {% endif %}
           </div>
         </div>
-
-        <!-- Card Body — 3 colonnes -->
-        <div class="card-body">
-
-          <!-- Colonne 1 : Analyse Statique -->
-          <div class="analysis-section">
-            <div class="section-title">
-              <span class="section-icon">◈</span> Analyse Statique
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Entropie</span>
-              <span class="metric-val {% if report.static_analysis.entropy > 7 %}bad{% elif report.static_analysis.entropy > 6 %}warn{% else %}ok{% endif %}">
-                {{ report.static_analysis.entropy }}
-              </span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Packed</span>
-              <span class="metric-val {% if report.static_analysis.is_packed %}bad{% else %}ok{% endif %}">
-                {{ 'OUI' if report.static_analysis.is_packed else 'NON' }}
-              </span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Verdict</span>
-              <span class="metric-val">{{ report.static_analysis.verdict }}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Risk +pts</span>
-              <span class="metric-val {% if report.static_analysis.risk_score > 0 %}warn{% else %}ok{% endif %}">
-                +{{ report.static_analysis.risk_score }}
-              </span>
-            </div>
-
-            <!-- IOC -->
-            {% if report.ioc.files_accessed %}
-            <div class="section-title" style="margin-top:16px">
-              <span class="section-icon">◈</span> IOC — Fichiers
-            </div>
-            {% for f in report.ioc.files_accessed %}
-              <span class="ioc-tag">{{ f }}</span>
+        <div class="analysis-section">
+          <div class="sec-title">◈ Réseau + MITRE</div>
+          <div class="metric-row"><span class="metric-key">Connexions</span>
+            <span class="metric-val {% if r.network_analysis.connection_attempts %}bad{% else %}ok{% endif %}">{{ r.network_analysis.connection_attempts | length }}</span></div>
+          <div class="metric-row"><span class="metric-key">DNS lookups</span><span class="metric-val">{{ r.network_analysis.dns_lookups | length }}</span></div>
+          {% if r.mitre %}
+          <div style="margin-top:12px">
+            {% for t in r.mitre %}
+            <div class="mitre-badge">{{ t.id }}<span style="color:var(--text)">{{ t.name }}</span></div>
             {% endfor %}
-            {% endif %}
           </div>
-
-          <!-- Colonne 2 : Analyse Dynamique -->
-          <div class="analysis-section">
-            <div class="section-title">
-              <span class="section-icon">◈</span> Analyse Dynamique
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Syscalls</span>
-              <span class="metric-val">{{ report.dynamic_analysis.syscalls_count }}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Alertes</span>
-              <span class="metric-val {% if report.dynamic_analysis.alerts %}bad{% else %}ok{% endif %}">
-                {{ report.dynamic_analysis.alerts | length }}
-              </span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Risk +pts</span>
-              <span class="metric-val {% if report.dynamic_analysis.risk_score > 0 %}warn{% else %}ok{% endif %}">
-                +{{ report.dynamic_analysis.risk_score }}
-              </span>
-            </div>
-
-            <div style="margin-top:14px">
-              {% if report.dynamic_analysis.alerts %}
-                {% for alert in report.dynamic_analysis.alerts %}
-                  <div class="alert-item">{{ alert }}</div>
-                {% endfor %}
-              {% else %}
-                <div class="no-alert">✓ Aucune alerte comportementale</div>
-              {% endif %}
-            </div>
-          </div>
-
-          <!-- Colonne 3 : Réseau + MITRE -->
-          <div class="analysis-section">
-            <div class="section-title">
-              <span class="section-icon">◈</span> Réseau
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Connexions</span>
-              <span class="metric-val {% if report.network_analysis.connection_attempts %}bad{% else %}ok{% endif %}">
-                {{ report.network_analysis.connection_attempts | length }}
-              </span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Ports suspects</span>
-              <span class="metric-val {% if report.network_analysis.suspicious_ports %}bad{% else %}ok{% endif %}">
-                {{ report.network_analysis.suspicious_ports | length }}
-              </span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">DNS lookups</span>
-              <span class="metric-val">{{ report.network_analysis.dns_lookups | length }}</span>
-            </div>
-
-            {% if report.ioc.ips %}
-            <div style="margin-top:10px">
-              {% for ip in report.ioc.ips %}
-                <span class="ioc-tag">{{ ip }}</span>
-              {% endfor %}
-            </div>
-            {% endif %}
-
-            <!-- MITRE ATT&CK -->
-            {% if report.mitre %}
-            <div class="section-title" style="margin-top:16px">
-              <span class="section-icon">◈</span> MITRE ATT&CK
-            </div>
-            {% for t in report.mitre %}
-              <div class="mitre-badge">
-                {{ t.id }}
-                <span class="mitre-name">{{ t.name }}</span>
-              </div>
-            {% endfor %}
-            {% endif %}
-          </div>
-
-        </div><!-- /card-body -->
-      </div><!-- /report-card -->
-
+          {% endif %}
+        </div>
+      </div>
+    </div>
     {% endfor %}
-
   {% else %}
-    <div class="empty-state">
-      <div class="empty-icon">⬡</div>
-      <h2>Aucun rapport disponible</h2>
-      <p>Lancez l'analyseur : python3 src/engine/analyzer.py</p>
+    <div style="text-align:center;padding:60px;color:var(--muted)">
+      <div style="font-size:40px;margin-bottom:16px;opacity:.3">⬡</div>
+      <p style="font-family:var(--mono);font-size:12px">Aucun rapport — allez dans l'onglet Analyser</p>
     </div>
   {% endif %}
+</div>
+
+<!-- ═══ TAB ANALYZE ═══ -->
+<div class="tab-content" id="tab-analyze">
+
+  <!-- Upload -->
+  <div class="batch-panel">
+    <div class="batch-title">⬆ Upload un nouveau binaire</div>
+    <div class="upload-zone" id="dropzone" onclick="document.getElementById('file-input').click()"
+         ondragover="event.preventDefault();this.classList.add('drag')"
+         ondragleave="this.classList.remove('drag')"
+         ondrop="handleDrop(event)">
+      <div class="upload-icon">📁</div>
+      <div class="upload-text">Glissez un binaire ELF ici ou <strong>cliquez pour choisir</strong></div>
+      <div class="upload-text" style="margin-top:4px;font-size:10px">ARM · MIPS · PowerPC · x86 · ARM64</div>
+    </div>
+    <input type="file" id="file-input" style="display:none" onchange="uploadAndAnalyze(this.files[0])">
+  </div>
+
+  <!-- Batch depuis samples/ -->
+  <div class="batch-panel">
+    <div class="batch-title">⚡ Batch — Analyser depuis samples/</div>
+
+    {% if samples %}
+    <div class="samples-grid" id="samples-grid">
+      {% for s in samples %}
+      <div class="sample-item" onclick="toggleSample(this,'{{ s }}')" data-name="{{ s }}">
+        <div class="sample-check" id="check-{{ loop.index }}">✓</div>
+        <span class="sample-name" title="{{ s }}">{{ s }}</span>
+        <div class="{{ 'sample-analyzed' if s in (reports | map(attribute='meta.target') | list) else 'sample-unanalyzed' }}"
+             title="{{ 'Déjà analysé' if s in (reports | map(attribute='meta.target') | list) else 'Non analysé' }}"></div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="selectAll()">Tout sélectionner</button>
+      <button class="btn btn-ghost" onclick="deselectAll()">Désélectionner</button>
+      <button class="btn btn-primary" id="btn-analyze" onclick="launchBatch()" disabled>
+        ⚡ Analyser la sélection
+      </button>
+      <span id="selection-count" style="font-family:var(--mono);font-size:11px;color:var(--muted)">0 sélectionné(s)</span>
+    </div>
+    {% else %}
+    <div style="font-family:var(--mono);font-size:12px;color:var(--muted)">
+      Aucun binaire dans samples/ — uploadez-en un ci-dessus.
+    </div>
+    {% endif %}
+
+    <!-- Jobs progress -->
+    <div class="jobs-container" id="jobs-container"></div>
+  </div>
+
+</div>
+
+<!-- ═══ TAB API ═══ -->
+<div class="tab-content" id="tab-api">
+  <div class="section-label" style="margin-bottom:24px">Endpoints REST</div>
+
+  <div class="api-block">
+    <div><span class="api-method get">GET</span><span class="api-path">/api/status</span></div>
+    <div class="api-desc">Statut du sandbox, QEMU disponibles, compteurs</div>
+    <div class="api-example">curl http://localhost:5000/api/status</div>
+  </div>
+  <div class="api-block">
+    <div><span class="api-method get">GET</span><span class="api-path">/api/samples</span></div>
+    <div class="api-desc">Liste les binaires disponibles dans samples/</div>
+  </div>
+  <div class="api-block">
+    <div><span class="api-method post">POST</span><span class="api-path">/api/analyze</span></div>
+    <div class="api-desc">Analyse un binaire — upload (multipart) ou fichier existant (JSON)</div>
+    <div class="api-example"># Upload fichier
+curl -X POST -F "file=@mon_binaire" http://localhost:5000/api/analyze
+
+# Fichier dans samples/
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"filename":"malware_arm_bin"}' http://localhost:5000/api/analyze</div>
+  </div>
+  <div class="api-block">
+    <div><span class="api-method post">POST</span><span class="api-path">/api/batch</span></div>
+    <div class="api-desc">Analyse plusieurs binaires en parallèle (max 10)</div>
+    <div class="api-example">curl -X POST -H "Content-Type: application/json" \
+     -d '{"filenames":["bin1","bin2","bin3"]}' http://localhost:5000/api/batch</div>
+  </div>
+  <div class="api-block">
+    <div><span class="api-method get">GET</span><span class="api-path">/api/jobs/&lt;job_id&gt;</span></div>
+    <div class="api-desc">Polling du statut d'un job (queued / running / done / error)</div>
+    <div class="api-example">curl http://localhost:5000/api/jobs/a1b2c3d4</div>
+  </div>
+  <div class="api-block">
+    <div><span class="api-method get">GET</span><span class="api-path">/api/reports</span></div>
+    <div class="api-desc">Liste tous les rapports avec score et MITRE</div>
+  </div>
+  <div class="api-block">
+    <div><span class="api-method get">GET</span><span class="api-path">/api/reports/&lt;name&gt;</span></div>
+    <div class="api-desc">Rapport JSON complet d'un binaire analysé</div>
+    <div class="api-example">curl http://localhost:5000/api/reports/malware_arm_bin</div>
+  </div>
+
+  <!-- Test live -->
+  <div style="margin-top:32px">
+    <div class="section-label">Test live</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="testApi('/api/status')">GET /api/status</button>
+      <button class="btn btn-ghost"   onclick="testApi('/api/samples')">GET /api/samples</button>
+      <button class="btn btn-ghost"   onclick="testApi('/api/reports')">GET /api/reports</button>
+    </div>
+    <pre id="api-output" style="margin-top:16px;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:8px;padding:16px;font-family:var(--mono);font-size:11px;color:var(--accent2);overflow-x:auto;max-height:400px;display:none"></pre>
+  </div>
+</div>
 
 </main>
 
-<!-- ===== FOOTER ===== -->
 <footer>
-  <span>ARM Malware Analysis Sandbox — Projet 5 — M1 LSE UBO Brest</span>
-  <span>QEMU · Strace · Flask · MITRE ATT&CK</span>
+  <span>ARM Malware Analysis Sandbox v2.0 — Projet 5 — M1 LSE UBO Brest</span>
+  <span>QEMU · Strace · Flask · MITRE ATT&CK · REST API</span>
 </footer>
 
+<div id="toast"></div>
+
+<script>
+// ── Tabs ──────────────────────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+function toast(msg, color='var(--ok)'){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.borderColor = color;
+  el.style.display = 'block';
+  setTimeout(()=>el.style.display='none', 3000);
+}
+
+// ── Sample selection ──────────────────────────────────────────────────────
+const selected = new Set();
+function toggleSample(el, name){
+  if(selected.has(name)){ selected.delete(name); el.classList.remove('selected'); }
+  else if(selected.size < 10){ selected.add(name); el.classList.add('selected'); }
+  else{ toast('Maximum 10 binaires à la fois', 'var(--warn)'); return; }
+  document.getElementById('selection-count').textContent = selected.size + ' sélectionné(s)';
+  document.getElementById('btn-analyze').disabled = selected.size === 0;
+}
+function selectAll(){
+  document.querySelectorAll('.sample-item').forEach(el=>{
+    const n = el.dataset.name;
+    if(selected.size < 10){ selected.add(n); el.classList.add('selected'); }
+  });
+  document.getElementById('selection-count').textContent = selected.size + ' sélectionné(s)';
+  document.getElementById('btn-analyze').disabled = selected.size === 0;
+}
+function deselectAll(){
+  selected.clear();
+  document.querySelectorAll('.sample-item').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('selection-count').textContent = '0 sélectionné(s)';
+  document.getElementById('btn-analyze').disabled = true;
+}
+
+// ── Batch launch ──────────────────────────────────────────────────────────
+async function launchBatch(){
+  if(!selected.size) return;
+  const btn = document.getElementById('btn-analyze');
+  btn.disabled = true;
+  btn.textContent = '⏳ Lancement...';
+
+  try {
+    const r = await fetch('/api/batch',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({filenames: [...selected]})
+    });
+    const data = await r.json();
+    toast(`${data.batch_size} job(s) lancé(s)`);
+    data.jobs.forEach(j => j.job_id && startPolling(j.job_id, j.filename));
+  } catch(e){
+    toast('Erreur API batch', 'var(--accent)');
+  }
+
+  btn.textContent = '⚡ Analyser la sélection';
+  btn.disabled = false;
+  deselectAll();
+}
+
+// ── Upload ────────────────────────────────────────────────────────────────
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if(file) uploadAndAnalyze(file);
+}
+async function uploadAndAnalyze(file){
+  if(!file) return;
+  toast(`Upload de ${file.name}...`, 'var(--accent2)');
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch('/api/analyze',{method:'POST',body:fd});
+    const data = await r.json();
+    toast(`Job lancé : ${data.job_id}`);
+    startPolling(data.job_id, file.name);
+    // Affiche l'onglet analyser
+    switchTab('analyze');
+  } catch(e){
+    toast('Erreur upload', 'var(--accent)');
+  }
+}
+
+// ── Polling jobs ──────────────────────────────────────────────────────────
+const jobs = {};
+function startPolling(jobId, filename){
+  const container = document.getElementById('jobs-container');
+  const el = document.createElement('div');
+  el.className = 'job-item';
+  el.id = 'job-'+jobId;
+  el.innerHTML = `
+    <span class="job-name">${filename}</span>
+    <div class="job-progress-bar"><div class="job-progress-fill" id="fill-${jobId}" style="width:0%"></div></div>
+    <span class="job-pct" id="pct-${jobId}">0%</span>
+    <span class="job-status queued" id="status-${jobId}">QUEUED</span>`;
+  container.insertBefore(el, container.firstChild);
+
+  jobs[jobId] = setInterval(async ()=>{
+    try {
+      const r = await fetch('/api/jobs/'+jobId);
+      const d = await r.json();
+      document.getElementById('fill-'+jobId).style.width = d.progress+'%';
+      document.getElementById('pct-'+jobId).textContent   = d.progress+'%';
+      const statusEl = document.getElementById('status-'+jobId);
+      statusEl.textContent = d.status.toUpperCase();
+      statusEl.className = 'job-status '+d.status;
+
+      if(d.status === 'done'){
+        clearInterval(jobs[jobId]);
+        toast(`✓ ${filename} analysé — Score: ${d.result?.risk?.score ?? '?'}/100`);
+        setTimeout(()=>location.reload(), 2000);
+      }
+      if(d.status === 'error'){
+        clearInterval(jobs[jobId]);
+        toast(`Erreur: ${d.error}`, 'var(--accent)');
+      }
+    } catch(e){ clearInterval(jobs[jobId]); }
+  }, 1000);
+}
+
+// ── API test live ─────────────────────────────────────────────────────────
+async function testApi(endpoint){
+  const out = document.getElementById('api-output');
+  out.style.display = 'block';
+  out.textContent = 'Chargement...';
+  try {
+    const r = await fetch(endpoint);
+    const d = await r.json();
+    out.textContent = JSON.stringify(d, null, 2);
+  } catch(e){
+    out.textContent = 'Erreur: '+e;
+  }
+}
+</script>
 </body>
 </html>
