@@ -13,3 +13,5 @@ projet2-secure-boot/build/
 *.db
 *.bak
 *.dat
+
+projet7-marauder-esp32/
