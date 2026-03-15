@@ -1,0 +1,50 @@
+/dts-v1/;
+/ {
+    description = "Secure Boot & Chain of Trust sur Raspberry Pi";
+    #address-cells = <1>;
+
+    images {
+        kernel@1 {
+            description = "Linux kernel ARM64";
+            data = /incbin/("vmlinuz");
+            type = "kernel";
+            arch = "arm64";
+            os = "linux";
+            compression = "none";
+            load = <0x00080000>;
+            entry = <0x00080000>;
+            hash@1 { algo = "sha256"; };
+            signature@1 {
+                algo = "sha256,rsa2048";
+                key-name-hint = "dev_key";
+            };
+        };
+
+        fdt@1 {
+            description = "BCM2711 RPi4 DTB";
+            data = /incbin/("bcm2711-rpi-4-b.dtb");
+            type = "flat_dt";
+            arch = "arm64";
+            compression = "none";
+            hash@1 { algo = "sha256"; };
+            signature@1 {
+                algo = "sha256,rsa2048";
+                key-name-hint = "dev_key";
+            };
+        };
+    };
+
+    configurations {
+        default = "conf@1";
+        conf@1 {
+            description = "RPi4 secure config";
+            kernel = "kernel@1";
+            fdt = "fdt@1";
+            signature@1 {
+                algo = "sha256,rsa2048";
+                key-name-hint = "dev_key";
+                sign-images = "kernel", "fdt";
+            };
+        };
+    };
+};
