@@ -7,13 +7,47 @@ SIZE    = arm-none-eabi-size
 
 MCU_FLAGS = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 
-DEFINES = -DSTM32F411xE -DUSE_HAL_DRIVER
+DEFINES = -DSTM32F411xE -DUSE_HAL_DRIVER -DMBEDTLS_CONFIG_FILE='"mbedtls_config.h"'
 
-C_SOURCES =     Core/Src/main.c     Core/Src/tasks.c     Core/Src/security.c     Drivers/STM32F4xx/Src/stm32f4xx_hal.c     Drivers/STM32F4xx/Src/stm32f4xx_hal_rcc.c     Drivers/STM32F4xx/Src/stm32f4xx_hal_rcc_ex.c     Drivers/STM32F4xx/Src/stm32f4xx_hal_gpio.c     Drivers/STM32F4xx/Src/stm32f4xx_hal_uart.c     Drivers/STM32F4xx/Src/stm32f4xx_hal_adc.c     Drivers/STM32F4xx/Src/stm32f4xx_hal_adc_ex.c     Drivers/STM32F4xx/Src/stm32f4xx_hal_cortex.c     Drivers/STM32F4xx/Src/stm32f4xx_hal_dma.c     Drivers/STM32F4xx/Src/stm32f4xx_hal_pwr_ex.c     Drivers/CMSIS/Source/system_stm32f4xx.c     FreeRTOS/tasks.c     FreeRTOS/queue.c     FreeRTOS/list.c     FreeRTOS/timers.c     FreeRTOS/event_groups.c     FreeRTOS/stream_buffer.c     FreeRTOS/portable/GCC/ARM_CM4F/port.c     FreeRTOS/portable/MemMang/heap_4.c
+C_SOURCES = \
+    Core/Src/main.c \
+    Core/Src/tasks.c \
+    Core/Src/security.c \
+    Core/Src/hmac_sha256.c \
+    Core/Src/fault_handlers.c \
+    Drivers/STM32F4xx/Src/stm32f4xx_hal.c \
+    Drivers/STM32F4xx/Src/stm32f4xx_hal_rcc.c \
+    Drivers/STM32F4xx/Src/stm32f4xx_hal_rcc_ex.c \
+    Drivers/STM32F4xx/Src/stm32f4xx_hal_gpio.c \
+    Drivers/STM32F4xx/Src/stm32f4xx_hal_uart.c \
+    Drivers/STM32F4xx/Src/stm32f4xx_hal_adc.c \
+    Drivers/STM32F4xx/Src/stm32f4xx_hal_adc_ex.c \
+    Drivers/STM32F4xx/Src/stm32f4xx_hal_cortex.c \
+    Drivers/STM32F4xx/Src/stm32f4xx_hal_dma.c \
+    Drivers/STM32F4xx/Src/stm32f4xx_hal_pwr_ex.c \
+    Drivers/STM32F4xx/Src/stm32f4xx_hal_iwdg.c \
+    Drivers/CMSIS/Source/system_stm32f4xx.c \
+    FreeRTOS/tasks.c \
+    FreeRTOS/queue.c \
+    FreeRTOS/list.c \
+    FreeRTOS/timers.c \
+    FreeRTOS/event_groups.c \
+    FreeRTOS/stream_buffer.c \
+    FreeRTOS/portable/GCC/ARM_CM4_MPU/port.c \
+    FreeRTOS/portable/Common/mpu_wrappers.c \
+    FreeRTOS/portable/MemMang/heap_4.c \
+    Middlewares/mbedtls/library/sha256.c
 
 ASM_SOURCES = Drivers/CMSIS/Source/startup_stm32f411xe.s
 
-C_INCLUDES =     -ICore/Inc     -IDrivers/CMSIS/Include     -IDrivers/CMSIS/Device/ST/STM32F4xx/Include     -IDrivers/STM32F4xx/Inc     -IFreeRTOS/include     -IFreeRTOS/portable/GCC/ARM_CM4F
+C_INCLUDES = \
+    -ICore/Inc \
+    -IDrivers/CMSIS/Include \
+    -IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
+    -IDrivers/STM32F4xx/Inc \
+    -IFreeRTOS/include \
+    -IFreeRTOS/portable/GCC/ARM_CM4_MPU \
+    -IMiddlewares/mbedtls/include
 
 CFLAGS = $(MCU_FLAGS) $(DEFINES) $(C_INCLUDES) -Wall -fdata-sections -ffunction-sections -Os -g3
 

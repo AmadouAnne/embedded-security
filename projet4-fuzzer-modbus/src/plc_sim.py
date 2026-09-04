@@ -40,7 +40,14 @@ class PLCSimulator:
             self.setpoint_L,         # [4] setpoint_L
         ]
 
-        self.data_block = ModbusSequentialDataBlock(0, init_values + [0]*95)
+        # NOTE: pymodbus's ModbusSequentialDataBlock takes a 1-based starting
+        # address -- constructing with 0 silently shifts every wire-level
+        # read/write by one register (client.read_holding_registers(0,...)
+        # would return [pump_state, alarm, setpoint_H, setpoint_L, <unused>]
+        # instead of [water_level, pump_state, alarm, setpoint_H, setpoint_L]).
+        # Confirmed empirically against a live server; see also getValues()/
+        # setValues() below, which use the same 1-based addressing.
+        self.data_block = ModbusSequentialDataBlock(1, init_values + [0]*95)
         self.slave = ModbusDeviceContext(hr=self.data_block)
         self.context = ModbusServerContext(devices=self.slave, single=True)
 
@@ -54,8 +61,8 @@ class PLCSimulator:
         while True:
             # Lit les setpoints depuis les registres Modbus
             # (le fuzzer peut les avoir modifies !)
-            sp_H = self.data_block.getValues(3, 1)[0]
-            sp_L = self.data_block.getValues(4, 1)[0]
+            sp_H = self.data_block.getValues(4, 1)[0]
+            sp_L = self.data_block.getValues(5, 1)[0]
 
             # Logique pompe : hysteresis simple
             # Si niveau depasse seuil haut -> pompe OFF
@@ -86,7 +93,7 @@ class PLCSimulator:
                 print(f"[!!!] ALARME LL : niveau {self.water_level:.1f}% -- DANGER CAVITATION")
 
             # Ecrit les valeurs dans les registres Modbus
-            self.data_block.setValues(0, [
+            self.data_block.setValues(1, [
                 int(self.water_level),
                 self.pump_state,
                 self.alarm,

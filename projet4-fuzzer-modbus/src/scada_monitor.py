@@ -22,7 +22,9 @@ def monitor(host="127.0.0.1", port=5020, interval=1.0):
     start = time.time()
     try:
         while True:
-            regs = client.read_holding_registers(1, count=5)
+            # Wire-level (PDU) addresses are 0-based: register 0 is
+            # water_level -- see the addressing note in plc_sim.py.
+            regs = client.read_holding_registers(0, count=5)
 
             if regs.isError():
                 print("[!] Erreur lecture -- PLC ne repond plus !")

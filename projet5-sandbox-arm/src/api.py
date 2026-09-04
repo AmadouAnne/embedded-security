@@ -58,7 +58,7 @@ def _run_analysis(binary_path, job_id):
         dynamic = {**a.report["dynamic_analysis"],  "risk_score": a.report["dynamic_analysis"].get("risk_score", 0)}
 
         # Réseau
-        n = NetworkAnalyzer(binary_path)
+        n = NetworkAnalyzer(binary_path, qemu=a.qemu)
         network = n.run()
         _jobs[job_id]["progress"] = 85
 
@@ -93,7 +93,7 @@ def status():
     if os.path.exists(SAMPLES_DIR):
         samples = [f for f in os.listdir(SAMPLES_DIR)
                    if os.path.isfile(os.path.join(SAMPLES_DIR, f))
-                   and not f.endswith(".c")]
+                   and not f.endswith((".c", ".zip"))]
 
     return jsonify({
         "status":          "online",
@@ -115,7 +115,7 @@ def list_samples():
     samples = []
     for fname in os.listdir(SAMPLES_DIR):
         fpath = os.path.join(SAMPLES_DIR, fname)
-        if os.path.isfile(fpath) and not fname.endswith(".c"):
+        if os.path.isfile(fpath) and not fname.endswith((".c", ".zip")):
             samples.append({
                 "name": fname,
                 "size": os.path.getsize(fpath),

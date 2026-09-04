@@ -1,4 +1,3 @@
-
 #include "stm32f4xx_hal.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -14,6 +13,9 @@ extern UART_HandleTypeDef huart2;
 typedef struct { char name[16]; uint32_t *stack_top; } TaskGuard_t;
 static TaskGuard_t guards[MAX_TASKS];
 static uint8_t     guard_count = 0;
+
+static IWDG_HandleTypeDef hiwdg;
+static volatile uint32_t  health_bits = 0;
 
 void Security_MPU_Init(void)
 {
@@ -34,6 +36,9 @@ void Security_MPU_Init(void)
     r.TypeExtField=MPU_TEX_LEVEL0; r.IsShareable=MPU_ACCESS_SHAREABLE;
     r.IsCacheable=MPU_ACCESS_NOT_CACHEABLE; r.IsBufferable=MPU_ACCESS_BUFFERABLE;
     HAL_MPU_ConfigRegion(&r);
+    /* NOTE: vTaskStartScheduler() re-programs the MPU with the FreeRTOS-MPU
+     * layout (kernel + per-task regions) once it takes over -- this initial
+     * setup only covers the brief window between reset and scheduler start. */
     HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 }
 
@@ -53,8 +58,7 @@ void Security_CheckCanaries(void)
     char msg[128];
     for(uint8_t i=0;i<guard_count;i++){
         if(*guards[i].stack_top!=CANARY_VALUE){
-            snprintf(msg,sizeof(msg),"[SECURITY] STACK OVERFLOW: %s
-",guards[i].name);
+            snprintf(msg,sizeof(msg),"[SECURITY] STACK OVERFLOW: %s\r\n",guards[i].name);
             HAL_UART_Transmit(&huart2,(uint8_t*)msg,strlen(msg),100);
             NVIC_SystemReset();
         }
@@ -71,13 +75,44 @@ void Security_PrintReport(void)
 {
     char msg[256];
     snprintf(msg,sizeof(msg),
-        "
-=== SECURITY REPORT ===
-"
-        "  Heap free : %u
-  MPU : ACTIVE
-  Canaries : %u tasks
-",
+        "\r\n=== SECURITY REPORT ===\r\n"
+        "  Heap free : %u\r\n  MPU : ACTIVE\r\n  Canaries : %u tasks\r\n",
         (unsigned)xPortGetFreeHeapSize(),(unsigned)guard_count);
     HAL_UART_Transmit(&huart2,(uint8_t*)msg,strlen(msg),200);
+}
+
+/* --- Hardware watchdog -------------------------------------------------
+ * LSI ~32kHz, prescaler /32 -> 1kHz IWDG clock, reload=1600 -> ~1.6s
+ * timeout. If Security_KickIfHealthy() is not called with all of
+ * SECURITY_TASK_ALL set within that window, the MCU resets unconditionally
+ * -- independent of whatever state the scheduler or application is in. */
+void Security_IWDG_Init(void)
+{
+    hiwdg.Instance = IWDG;
+    hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
+    hiwdg.Init.Reload    = 1600;
+    HAL_IWDG_Init(&hiwdg);
+}
+
+void Security_Heartbeat(uint32_t task_bit)
+{
+    taskENTER_CRITICAL();
+    health_bits |= task_bit;
+    taskEXIT_CRITICAL();
+}
+
+void Security_KickIfHealthy(void)
+{
+    taskENTER_CRITICAL();
+    uint32_t snapshot = health_bits;
+    if (snapshot == SECURITY_TASK_ALL) {
+        health_bits = 0;
+    }
+    taskEXIT_CRITICAL();
+
+    if (snapshot == SECURITY_TASK_ALL) {
+        HAL_IWDG_Refresh(&hiwdg);
+    }
+    /* else: at least one task missed its check-in this cycle -- refresh is
+     * skipped on purpose, letting the independent watchdog timer expire. */
 }

@@ -33,7 +33,15 @@ def run():
                 "calls": []
             })
 
-    output_path = askString("Output", "JSON output path:")
+    # First script arg (analyzeHeadless ... -postScript GhidraFunctionHasher.py <path>)
+    # lets this run non-interactively; falls back to the GUI prompt so it still
+    # works from Script Manager. Using headless mode for both v33 and v35 is
+    # what actually fixes the "identical JSON exports" bug documented in
+    # README.md -- it removes the manual step (open project, run script, repeat)
+    # where forgetting to re-import the second binary silently re-analyzes the
+    # same currentProgram twice.
+    args = getScriptArgs()
+    output_path = args[0] if len(args) > 0 else askString("Output", "JSON output path:")
     with open(output_path, 'w') as f:
         json.dump(results, f, indent=2)
     print("[+] Exported {} functions to {}".format(len(results), output_path))

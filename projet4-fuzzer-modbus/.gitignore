@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 embedded-sec-env/
+venv/
 .DS_Store
 *.log
 *.aux

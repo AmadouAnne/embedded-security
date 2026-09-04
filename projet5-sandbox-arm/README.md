@@ -133,6 +133,19 @@ Le conteneur Docker tourne avec :
 - Volumes en lecture seule pour les samples
 - `--rm` — conteneur supprimé après chaque analyse
 
+## Échantillons réels
+
+`src/samples/` contient des échantillons ARM/MIPS réels (source : MalwareBazaar) sous forme de **zip chiffrés AES uniquement** (mot de passe standard MalwareBazaar : `infected`) — jamais en clair. Des binaires non protégés avaient été committés par erreur dans une révision antérieure ; ils ont été retirés de tout l'historique git (purge + force-push), pas seulement du dernier commit. Si vous voulez analyser un échantillon réel, extrayez-le vous-même dans un environnement isolé avant de le placer dans `samples/` — ne committez jamais le binaire extrait.
+
+## Bugs corrigés
+
+- **`launch.py` → `docker_analyze()` ignorait `--binary`.** Le `Dockerfile` définit `ENTRYPOINT ["python3", "src/engine/analyzer.py"]` ; `docker run IMAGE <args>` **ajoute** `<args>` à cet entrypoint plutôt que de le remplacer. L'ancien code passait `"python3", "src/engine/analyzer.py"` comme `<args>`, donnant l'argv réel `["python3","src/engine/analyzer.py","python3","src/engine/analyzer.py"]` — `analyzer.py` recevait donc toujours `"python3"` comme chemin de binaire, jamais le fichier demandé. Corrigé pour passer uniquement le chemin conteneur du binaire.
+- **`NetworkAnalyzer` codait en dur `qemu-arm-static`**, alors que `ARMAnalyzer` détecte correctement l'architecture (ARM/MIPS/PPC/x86_64/ARM64/RISC-V) et choisit le bon `qemu-*-static`. Toute analyse réseau sur un échantillon non-ARM échouait silencieusement (mauvais émulateur = "impossible d'exécuter"). Corrigé pour recevoir le binaire `qemu` détecté par `ARMAnalyzer` (`a.qemu`) au lieu de le redéviner.
+- Les listes d'échantillons (`app.py`, `api.py`) incluaient les `.zip` chiffrés comme s'ils étaient directement analysables — exclus désormais, comme les `.c`.
+- `docker-compose.yml` : suppression du champ `version` obsolète (ignoré silencieusement par Docker Compose v2, avec avertissement).
+
+Le pipeline statique (détection d'architecture, entropie, sections ELF, génération de rapport JSON) a été testé de bout en bout localement sur un binaire ELF réel non-ARM (`/usr/bin/ls`, x86_64) pour valider la correction ci-dessus sans exécuter de malware. Le chemin Docker complet (build + `qemu-user` + `strace`) nécessite un accès réseau normal à `deb.debian.org` pour `apt-get install` dans le `Dockerfile` — non disponible dans le sandbox d'exécution utilisé pour ce travail, donc non re-testé de bout en bout ici ; à valider avec `python3 launch.py --binary <sample>` sur une machine avec accès Internet standard.
+
 ## Références
 
 - [MITRE ATT&CK](https://attack.mitre.org)

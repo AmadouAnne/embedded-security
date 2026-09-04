@@ -16,4 +16,5 @@ def run_server():
     print("[+] CTRL+C pour arreter")
     StartTcpServer(context=context, address=("127.0.0.1", 5020))
 
-run_server()
+if __name__ == "__main__":
+    run_server()

@@ -151,13 +151,21 @@ def docker_analyze(binary_path):
     step(3, 5, "Analyse dans le conteneur Docker isole")
     info("Isolation : network_mode=none -- le malware ne peut pas sortir")
 
+    # The Dockerfile's ENTRYPOINT is ["python3", "src/engine/analyzer.py"];
+    # `docker run IMAGE <args>` appends <args> to that entrypoint, so this
+    # must be the binary path alone -- passing another "python3 ...analyzer.py"
+    # here (as before) made the container's actual argv become
+    # ["python3","src/engine/analyzer.py","python3","src/engine/analyzer.py"],
+    # so analyzer.py always received "python3" as sys.argv[1] and analyzed a
+    # nonexistent file, regardless of --binary.
+    container_binary = f"/home/sandbox/src/samples/{os.path.basename(binary_path)}"
     cmd = [
         "docker", "run", "--rm",
         "--network", "none",
         "-v", f"{SAMPLES}:/home/sandbox/src/samples:ro",
         "-v", f"{REPORTS}:/home/sandbox/src/reports",
         IMAGE,
-        "python3", "src/engine/analyzer.py"
+        container_binary
     ]
     info("Lancement du conteneur...")
     r = subprocess.run(cmd, cwd=ROOT)
@@ -189,7 +197,7 @@ def run_local_analysis(binary_path):
         dynamic = {**a.report["dynamic_analysis"],  "risk_score": a.report["risk_score"]}
         ok(f"Entropie : {static['entropy']}  Syscalls : {dynamic['syscalls_count']}")
 
-        n = NetworkAnalyzer(binary_path)
+        n = NetworkAnalyzer(binary_path, qemu=a.qemu)
         network = n.run()
 
         gen = ReportGenerator(output_dir=REPORTS)

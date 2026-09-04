@@ -18,32 +18,32 @@ Multitask RTOS system with MPU memory isolation, hardware watchdog and authentic
 ---
 
 ### 🛡️ [P2 — Secure Boot & Chain of Trust](./projet2-secure-boot)
-Full chain of trust implementation on Raspberry Pi using U-Boot verified boot. RSA-2048 kernel signature — any unsigned binary is rejected at boot time.  
-`U-Boot` `RSA-2048` `ARM TrustZone` `PKI` `Buildroot`
+FIT image signing for a Raspberry Pi 4 boot chain — kernel and device tree hashed (SHA-256) and signed (RSA-2048), trusted public key embedded in U-Boot's control DTB. Independently re-verified with openssl/fdtget outside of U-Boot, including two attack scenarios (tampering, re-signing with a foreign key) confirmed rejected.  
+`U-Boot FIT` `RSA-2048` `OpenSSL` `PKI` `Docker`
 
 ---
 
 ### 🔍 [P3 — IoT Firmware Patch Diffing](./projet3-patch-diffing)
-Automated tool that compares two firmware versions, identifies modified functions via Ghidra scripting, and correlates changes with published CVEs through the NVD API.  
-`Python` `Ghidra` `Binwalk` `CVE` `NVD API` `ASM ARM`
+Compares two OpenWRT firmware versions at the function level via Ghidra (headless, PyGhidra), pinpointing exactly which functions changed and why. One confirmed CVE (stored XSS in LuCI) plus an undocumented `libuclient` fix found and reverse-engineered from the binary diff alone.  
+`Python` `Ghidra` `PyGhidra` `Binwalk` `MIPS`
 
 ---
 
 ### ⚡ [P4 — Modbus TCP Grammar Fuzzer](./projet4-fuzzer-modbus)
-Grammar-based fuzzer targeting Modbus TCP — the industrial protocol used in power plants, water treatment and factories. Intelligent mutation engine with crash reproduction.  
-`Python` `Scapy` `ICS/SCADA` `Modbus` `Coverage-guided`
+Grammar-based fuzzer targeting Modbus TCP against a physics-based digital-twin PLC (water tank). Mutation engine plus a targeted unauthenticated-write attack that reproduces a real ICS dataset's most severe attack class end-to-end (triggers a real low-level safety alarm on the simulated PLC).  
+`Python` `Scapy` `pymodbus` `ICS/SCADA` `Modbus`
 
 ---
 
 ### 🤖 [P5 — ARM Malware Analysis Sandbox](./projet5-sandbox-arm)
-Dynamic analysis sandbox for ARM binaries running under instrumented QEMU. Captures syscalls, network traffic and filesystem access — generates automated behavior reports.  
-`QEMU` `Python` `Flask` `Docker` `strace` `ARM`
+Dynamic analysis sandbox for ARM/MIPS/PPC binaries running under instrumented QEMU in an isolated, network-disabled Docker container. Captures syscalls and network attempts, scores risk, and maps behavior to MITRE ATT&CK.  
+`QEMU` `Python` `Flask` `Docker` `strace`
 
 ---
 
 ### 📡 [P6 — AES-128 Side-Channel Attack](./projet6-side-channel)
-Correlation Power Analysis (CPA) attack on AES-128 running on STM32. Full key extraction via Pearson correlation on 1000+ power traces. Masking countermeasure implemented and validated.  
-`Python` `numpy` `CPA` `STM32` `mbedTLS` `Power Analysis`
+Correlation Power Analysis (CPA) against AES-128's first-round SubBytes — full key recovery via Pearson correlation, and a first-order boolean masking countermeasure shown to defeat it. Currently validated on a simulated Hamming-weight leakage model; real oscilloscope captures pending hardware access.  
+`Python` `numpy` `CPA` `AES-128` `Power Analysis`
 
 ---
 
@@ -57,10 +57,10 @@ Prépublication HAL — Janvier 2026
 
 ## Stack
 
-\`\`\`
-Languages  : C · C++ · Python · Bash · Assembly (ARM/x86)
-Hardware   : STM32 Nucleo · Raspberry Pi · ESP32
-Security   : Ghidra · Binwalk · Metasploit · Wazuh · OpenSSL
-Embedded   : FreeRTOS · Buildroot · U-Boot · QEMU · OpenOCD
-Protocols  : Modbus TCP · MQTT · TLS/mTLS · CAN · SPI · I2C
-\`\`\`
+```
+Languages  : C · Python · Bash · Assembly (MIPS)
+Hardware   : STM32 Nucleo-F411RE · Raspberry Pi 4
+Security   : Ghidra (PyGhidra) · Binwalk · OpenSSL · mbedTLS
+Embedded   : FreeRTOS-MPU · U-Boot (FIT) · QEMU-user · OpenOCD
+Protocols  : Modbus TCP
+```

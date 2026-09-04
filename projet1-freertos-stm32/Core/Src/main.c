@@ -6,22 +6,33 @@
 #include "semphr.h"
 #include "tasks.h"
 #include "security.h"
+#include "fault_handlers.h"
 
 QueueHandle_t     xSensorQueue;
 SemaphoreHandle_t xUARTMutex;
-TimerHandle_t     xWatchdogTimer;
 UART_HandleTypeDef huart2;
 ADC_HandleTypeDef  hadc1;
 
-static void SystemClock_Config(void);
+/* Stack (bottom-of-stack = lowest address, index 0) for the unprivileged
+ * "Untrusted" task, created via xTaskCreateRestricted(). Statically
+ * allocated because xTaskCreateRestricted() requires the caller to supply
+ * puxStackBuffer -- this also gives Security_RegisterTask() a fixed address
+ * to place a real stack canary at (dynamically-allocated tasks don't expose
+ * their stack base in this FreeRTOS version, so LED/UART/Sensor instead
+ * rely on the native configCHECK_FOR_STACK_OVERFLOW=2 watermark check). */
+#define UNTRUSTED_STACK_WORDS 128
+static StackType_t untrusted_stack[UNTRUSTED_STACK_WORDS] __attribute__((aligned(UNTRUSTED_STACK_WORDS * sizeof(StackType_t))));
+
+/* Private RAM region granted to the Untrusted task -- the only memory
+ * (besides its own stack) it can legally touch. Must be aligned to its own
+ * size for the Cortex-M4 MPU's base-address field to take effect correctly. */
+#define UNTRUSTED_SCRATCH_BYTES 32
+static uint8_t untrusted_scratch[UNTRUSTED_SCRATCH_BYTES] __attribute__((aligned(UNTRUSTED_SCRATCH_BYTES)));
+
 static void MX_GPIO_Init(void);
+static void SystemClock_Config(void);
 static void MX_USART2_UART_Init(void);
 static void MX_ADC1_Init(void);
-
-static void vWatchdogCallback(TimerHandle_t xTimer){
-    (void)xTimer;
-    NVIC_SystemReset();
-}
 
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName){
     (void)xTask; (void)pcTaskName;
@@ -36,15 +47,45 @@ int main(void){
     MX_GPIO_Init();
     MX_USART2_UART_Init();
     MX_ADC1_Init();
+
     Security_MPU_Init();
     Security_StackGuard_Init();
-    xSensorQueue  = xQueueCreate(8, sizeof(float));
-    xUARTMutex    = xSemaphoreCreateMutex();
-    xWatchdogTimer = xTimerCreate("WDG",pdMS_TO_TICKS(5000),pdFALSE,NULL,vWatchdogCallback);
-    xTimerStart(xWatchdogTimer, 0);
+    Security_IWDG_Init();
+    FaultHandlers_Init();
+
+    /* Canary for the one task whose stack we control statically -- see the
+     * comment above untrusted_stack[]. Checked every LED tick from
+     * vTask_LED() via Security_CheckCanaries(). */
+    Security_RegisterTask("Untrusted", &untrusted_stack[0]);
+
+    xSensorQueue = xQueueCreate(8, sizeof(float));
+    xUARTMutex   = xSemaphoreCreateMutex();
+
     xTaskCreate(vTask_LED,    "LED",    configMINIMAL_STACK_SIZE*2, NULL, 1, NULL);
     xTaskCreate(vTask_UART,   "UART",   configMINIMAL_STACK_SIZE*4, NULL, 2, NULL);
     xTaskCreate(vTask_Sensor, "Sensor", configMINIMAL_STACK_SIZE*2, NULL, 2, NULL);
+
+    /* Unprivileged task, isolated by the Cortex-M4 MPU: it may only touch
+     * its own stack (untrusted_stack) and untrusted_scratch. On the UART
+     * "VIOLATE" command it deliberately writes to g_secure_secret, which is
+     * outside both regions -- the MPU traps that access and MemManage_Handler
+     * (fault_handlers.c) reports it and resets, instead of it silently
+     * corrupting another task's state. */
+    static const TaskParameters_t xUntrustedTaskParameters = {
+        .pvTaskCode   = vTask_Untrusted,
+        .pcName       = "Untrusted",
+        .usStackDepth = UNTRUSTED_STACK_WORDS,
+        .pvParameters = untrusted_scratch,
+        .uxPriority   = 1, /* no portPRIVILEGE_BIT -> unprivileged */
+        .puxStackBuffer = untrusted_stack,
+        .xRegions = {
+            { untrusted_scratch, UNTRUSTED_SCRATCH_BYTES, portMPU_REGION_READ_WRITE },
+            { 0, 0, 0 },
+            { 0, 0, 0 },
+        },
+    };
+    xTaskCreateRestricted(&xUntrustedTaskParameters, NULL);
+
     vTaskStartScheduler();
     while(1){}
 }

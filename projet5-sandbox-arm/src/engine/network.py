@@ -28,9 +28,14 @@ SUSPICIOUS_PORTS = {
 
 
 class NetworkAnalyzer:
-    def __init__(self, binary_path, timeout=5):
+    def __init__(self, binary_path, timeout=5, qemu="qemu-arm-static"):
+        """qemu: the qemu-user binary matching this target's architecture
+        (e.g. ARMAnalyzer.qemu after detect_arch()) -- always defaulting to
+        qemu-arm-static here would silently fail (wrong-architecture exec)
+        for MIPS/PPC/ARM64 samples, which this sandbox otherwise supports."""
         self.binary = os.path.abspath(binary_path)
         self.timeout = timeout
+        self.qemu = qemu or "qemu-arm-static"
         self.results = {
             "network_syscalls": [],
             "connection_attempts": [],
@@ -84,7 +89,7 @@ class NetworkAnalyzer:
         """Lance le binaire via QEMU + strace et analyse le trafic réseau."""
         print(f"[*] Analyse réseau de {os.path.basename(self.binary)}...")
 
-        cmd = ["qemu-arm-static", "-strace", self.binary]
+        cmd = [self.qemu, "-strace", self.binary]
         try:
             proc = subprocess.run(
                 cmd,
@@ -103,7 +108,7 @@ class NetworkAnalyzer:
             })
 
         except FileNotFoundError:
-            print("[-] qemu-arm-static non trouve -- lancer depuis le conteneur Docker")
+            print(f"[-] {self.qemu} non trouve -- lancer depuis le conteneur Docker")
 
         except Exception as e:
             print(f"[-] Erreur: {e}")

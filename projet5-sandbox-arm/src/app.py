@@ -91,7 +91,7 @@ def index():
     if os.path.exists(SAMPLES_DIR):
         samples = [f for f in os.listdir(SAMPLES_DIR)
                    if os.path.isfile(os.path.join(SAMPLES_DIR, f))
-                   and not f.endswith(".c")]
+                   and not f.endswith((".c", ".zip"))]
 
     return render_template('index.html', reports=reports, samples=samples)
 

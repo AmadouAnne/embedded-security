@@ -6,6 +6,7 @@
 projet2-secure-boot/u-boot/
 projet1-freertos-stm32/Drivers/
 projet1-freertos-stm32/FreeRTOS/
+projet1-freertos-stm32/Middlewares/
 projet1-freertos-stm32/build/
 projet2-secure-boot/build/
 
@@ -13,5 +14,3 @@ projet2-secure-boot/build/
 *.db
 *.bak
 *.dat
-
-projet7-marauder-esp32/
