@@ -34,3 +34,14 @@ void uart_puts(const char *s)
         uart_putc(*s++);
     }
 }
+
+void uart_print_hex(const char *label, uintptr_t val)
+{
+    static const char digits[] = "0123456789abcdef";
+    uart_puts(label);
+    uart_puts(": 0x");
+    for (int shift = (int)(sizeof(uintptr_t) * 8) - 4; shift >= 0; shift -= 4) {
+        uart_putc(digits[(val >> shift) & 0xF]);
+    }
+    uart_puts("\n");
+}

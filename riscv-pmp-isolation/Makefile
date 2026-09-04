@@ -1,4 +1,4 @@
-TARGET    = riscv_pmp_phase1
+TARGET    = riscv_pmp
 BUILD_DIR = build
 
 CROSS   = riscv64-elf-
@@ -8,7 +8,8 @@ SIZE    = $(CROSS)size
 
 ARCH_FLAGS = -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany
 
-C_SOURCES   = Core/Src/main.c Core/Src/uart.c
+C_SOURCES   = Core/Src/main.c Core/Src/uart.c Core/Src/pmp.c Core/Src/trap.c \
+              Core/Src/sifive_test.c Core/Src/untrusted_task.c
 ASM_SOURCES = Core/Src/start.S
 
 C_INCLUDES = -ICore/Inc
