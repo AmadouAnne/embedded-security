@@ -44,9 +44,9 @@ Le script d'édition de liens (`STM32F411RETx_FLASH.ld`) réserve explicitement 
 
 ### 3.2 Résultat obtenu et méthode de validation
 
-Le système de base (ordonnancement, rapport UART, lecture capteur, chien de garde) a été validé sur matériel réel sur des exécutions continues de 15 à 20 secondes, sans redémarrage ni faute, avec relevé de température plausible (26–28 °C ambiants) confirmant que la chaîne de mesure (ADC → conversion → affichage `printf` flottant) fonctionne de bout en bout.
+Le système de base a été validé sur matériel réel, non par une exécution unique mais par plusieurs passages continus de 15 à 20 secondes sans redémarrage ni faute : l'ordonnanceur tourne, le chien de garde matériel IWDG est correctement rafraîchi à chaque cycle, le rapport périodique UART s'affiche à intervalle régulier, et la chaîne de mesure complète (ADC → conversion → affichage `printf` flottant) restitue une température plausible et stable (26–28 °C ambiants) sur toute la durée de l'essai. Chacun de ces quatre comportements a, à un moment de ce travail, été rompu par l'un des dix bugs listés en §4 ; leur observation conjointe et stable est donc elle-même la preuve que la correction a bien été apportée à la cause, non contournée par un correctif local.
 
-La démonstration de faute MPU proprement dite (commande `VIOLATE`) reste, à ce stade, **non aboutie** sur matériel réel : la tâche `Untrusted`, une fois effectivement ordonnancée (voir §4), échoue de façon reproductible dès son premier appel à un service RTOS réel (`vTaskDelay()`) au travers de la passerelle d'appel système MPU, par un mécanisme encore non totalement élucidé (voir §5.3). Ce résultat négatif est documenté explicitement plutôt que masqué, conformément à la méthodologie adoptée pour l'ensemble de ce travail (§4).
+La démonstration de faute MPU proprement dite (commande `VIOLATE`) reste, à ce stade, **non aboutie** sur matériel réel : la tâche `Untrusted`, une fois effectivement ordonnancée (voir §4, bug n°10), échoue de façon reproductible dès son premier appel à un service RTOS réel (`vTaskDelay()`) au travers de la passerelle d'appel système MPU. L'hypothèse d'un simple sous-dimensionnement de pile a été explicitement écartée par test (128, 256 puis 512 mots, échec rigoureusement identique dans les trois cas) ; le pointeur de pile enregistré dans le bloc de contrôle de la tâche au moment de l'échec pointe vers le tas du noyau, nulle part dans la pile propre de la tâche — signe d'un problème plus structurel dans le suivi du contexte à travers l'aller-retour d'élévation de privilège (SVC), non encore root-causé (voir §8). Ce résultat négatif est documenté explicitement plutôt que masqué, conformément à la méthodologie adoptée pour l'ensemble de ce travail.
 
 ## 4. Ce que le matériel réel a révélé : dix bugs, une méthodologie
 
@@ -126,6 +126,19 @@ Cette phase a elle-même produit une observation méthodologique transférable, 
 
 Contrairement à P1, ce résultat n'est **pas encore validé sur silicium réel** : aucune carte RISC-V n'était disponible au moment de ce travail (vérifié explicitement via `lsusb` : seul le ST-Link de la cible ARM était détecté). La Phase 4 (validation matérielle, par exemple sur ESP32-C3) reste une étape ouverte. Ce travail assume pleinement cette limite plutôt que de la dissimuler — c'est précisément parce que P1 a révélé une chaîne de dix bugs invisibles hors matériel réel que le résultat QEMU de P7, aussi propre soit-il désormais pour les Phases 2 et 3, doit être présenté comme provisoire tant qu'il n'a pas subi la même épreuve.
 
+### 5.5 Synthèse des résultats obtenus
+
+Avant de comparer les deux mécanismes eux-mêmes (§6), il est utile de résumer ce qui a été *effectivement démontré*, indépendamment de l'architecture :
+
+| | ARM Cortex-M4 (P1) | RISC-V rv64imac (P7) |
+|---|---|---|
+| Isolation tâche/secret noyau | démontrée en conception, non aboutie en test réel (§3.2) | démontrée et vérifiée octet près (Phase 2, §5.2) |
+| Isolation entre deux tâches sœurs | non testée dans ce travail | démontrée, faute contenue, tâche saine non affectée (Phase 3, §5.3) |
+| Bugs réels trouvés et corrigés | 10, sur matériel réel | 2, en simulation |
+| Validation | matérielle réelle (Nucleo-F411RE) | simulée (QEMU), matérielle en attente |
+
+Ce tableau illustre une asymétrie volontaire, pas un déséquilibre accidentel : P1 a été poussé jusqu'au bout sur la question de la fiabilité matérielle (dix bugs trouvés parce que le matériel réel a été utilisé comme juge), tandis que P7 a été poussé jusqu'au bout sur la question de la couverture fonctionnelle (isolation entre pairs, pas seulement entre une tâche et le noyau). Aucune des deux implémentations ne couvre encore intégralement les deux axes à la fois — c'est précisément ce que la section 8 formalise en travaux futurs plutôt que de le présenter comme acquis.
+
 ## 6. Analyse comparative
 
 | | ARM Cortex-M4 (MPU) | RISC-V rv64imac (PMP) |
@@ -153,7 +166,13 @@ La contribution la plus généralisable de ce travail n'est peut-être pas la co
 
 ## 9. Conclusion
 
-Ce travail implémente, documente et compare le même scénario d'isolation d'une tâche non fiable sur deux architectures aux mécanismes de protection mémoire structurellement différents. Les deux démonstrations atteignent, avec une précision vérifiée au mot près par confrontation aux symboles du binaire, l'objectif visé : intercepter un accès illégitime avant qu'il n'aboutisse, plutôt que de laisser une corruption silencieuse se produire. Mais le résultat le plus instructif de ce travail est ailleurs : le passage de la cible ARM au matériel réel a révélé une chaîne de dix bugs non détectables par la seule lecture du code, chacun masquant le suivant — un rappel empirique que, dans un domaine où l'isolation mémoire est un mécanisme de sécurité et non une simple optimisation, la validation sur silicium réel n'est pas une formalité, mais une étape de découverte à part entière.
+Ce travail pose la même question de sécurité — une tâche non privilégiée peut-elle être bornée à sa propre mémoire de façon à ce qu'une violation soit interceptée avant d'aboutir, plutôt que de corrompre silencieusement autre chose — sur deux mécanismes de protection mémoire physique structurellement différents, et y répond deux fois, avec deux formes de rigueur complémentaires plutôt qu'une seule répétée deux fois.
+
+Côté ARM Cortex-M4, la rigueur porte sur le matériel réel : un système FreeRTOS-MPU qui compilait sans erreur et respectait les conventions documentées du port `ARM_CM4_MPU` s'est révélé, dès le premier flashage sur une Nucleo-F411RE, porteur d'une chaîne de dix bugs réels — dans le firmware applicatif, dans l'interaction avec le port RTOS, et dans le script d'édition de liens — dont aucun n'était visible à la seule lecture du code ni détecté par la compilation. Le système de base en sort stabilisé et vérifié sur des exécutions continues de plusieurs secondes ; la démonstration de faute proprement dite reste, elle, honnêtement documentée comme inaboutie, avec un diagnostic précis de ce qui reste à élucider plutôt qu'un silence sur l'échec.
+
+Côté RISC-V, la rigueur porte sur la couverture fonctionnelle : au-delà de la question « du code non privilégié peut-il atteindre un secret du noyau » (Phase 2, répondue et vérifiée à l'octet près), un ordonnanceur M-mode minimal, écrit pour ce travail, démontre la question structurellement plus proche d'un déploiement réel — deux tâches sœurs isolées l'une de l'autre par rien d'autre que des régions PMP reconfigurées à chaque changement de contexte, où la tâche fautive est tuée et contenue tandis que sa sœur poursuit son exécution sans interruption mesurable (Phase 3). Cette démonstration, à ce stade, n'a subi ni l'épreuve du matériel réel ni celle d'un usage extérieur à ce travail — deux limites explicitement assumées plutôt que dissimulées.
+
+Le résultat le plus généralisable de ce travail n'est donc ni « MPU » ni « PMP » pris isolément, mais la conjonction des deux expériences : un mécanisme d'isolation mémoire physique peut être correctement *conçu* — architecture saine, conventions respectées, revue de code favorable — et rester néanmoins faux tant qu'il n'a pas été mis à l'épreuve, que ce soit par le silicium réel (ce que P1 a démontré à travers dix bugs) ou par un scénario de menace plus exigeant que celui initialement visé (ce que P7 a démontré en passant d'une isolation tâche/noyau à une isolation entre pairs). Dans un domaine où l'isolation mémoire est un mécanisme de sécurité et non une simple optimisation de performance, ni la lecture de code, ni la simulation, ni même une première démonstration réussie ne suffisent à en établir la fiabilité — seule l'épreuve continuée, sur du matériel réel et contre des scénarios de plus en plus proches du déploiement final, le permet. C'est cette épreuve, plus que son résultat à un instant donné, que ce travail documente.
 
 ---
 
