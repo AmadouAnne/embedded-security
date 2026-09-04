@@ -62,7 +62,7 @@ Prépublication HAL — Janvier 2026
 **Isolating Untrusted Tasks on Constrained Embedded Systems: A Comparative Study of ARM Cortex-M MPU and RISC-V PMP, with Real-Hardware Validation**  
 Working paper — from [P1](./freertos-stm32) and [P7](./riscv-pmp-isolation)  
 → French draft: [papers/mpu-vs-pmp-isolation/paper.md](./papers/mpu-vs-pmp-isolation/paper.md)  
-→ English, ACM format: [papers/mpu-vs-pmp-isolation/acm/paper.pdf](./papers/mpu-vs-pmp-isolation/acm/paper.pdf) ([source](./papers/mpu-vs-pmp-isolation/acm/paper.tex))
+→ English, ACM format: [anne-mpu-pmp-task-isolation-2026.pdf](./papers/mpu-vs-pmp-isolation/acm/anne-mpu-pmp-task-isolation-2026.pdf) ([source](./papers/mpu-vs-pmp-isolation/acm/anne-mpu-pmp-task-isolation-2026.tex))
 
 ---
 
