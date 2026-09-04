@@ -37,7 +37,7 @@ Ce projet consiste en une analyse de sécurité comparative (Patch Diffing) sur 
 ## 3. Structure du Projet
 
 ```
-projet3-patch-diffing/
+patch-diffing/
 ├── firmwares/              # Images .bin OpenWRT
 ├── extracted/
 │   ├── v33_rootfs/         # SquashFS extrait v22.03.3

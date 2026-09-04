@@ -24,7 +24,7 @@ corrélation MITRE ATT&CK, et dashboard web.
 ```bash
 # 1. Clone le repo
 git clone https://github.com/AmadouAnne/embedded-security
-cd embedded-security/projet5-sandbox-arm
+cd embedded-security/sandbox-arm
 
 # 2. Installe les dépendances Python
 pip install -r requirements.txt
@@ -40,7 +40,7 @@ C'est tout. Le script gère Docker automatiquement.
 ## Structure du projet
 
 ```
-projet5-sandbox-arm/
+sandbox-arm/
 ├── launch.py                  # Orchestrateur principal
 ├── Dockerfile                 # Image sandbox (Debian + QEMU + strace)
 ├── docker-compose.yml         # Isolation réseau (network_mode: none)

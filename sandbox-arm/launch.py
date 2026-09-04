@@ -26,7 +26,7 @@ ENGINE  = os.path.join(SRC, "engine")
 SAMPLES = os.path.join(SRC, "samples")
 REPORTS = os.path.join(SRC, "reports")
 DEFAULT = os.path.join(SAMPLES, "malware_arm_bin")
-IMAGE   = "projet5-sandbox-arm-arm-sandbox"
+IMAGE   = "sandbox-arm-arm-sandbox"
 
 R   = "\033[91m"; G = "\033[92m"; Y = "\033[93m"
 C   = "\033[96m"; W = "\033[97m"; DIM = "\033[2m"; RS = "\033[0m"

@@ -3,12 +3,12 @@
 *.pem
 
 # Gros dossiers source
-projet2-secure-boot/u-boot/
-projet1-freertos-stm32/Drivers/
-projet1-freertos-stm32/FreeRTOS/
-projet1-freertos-stm32/Middlewares/
-projet1-freertos-stm32/build/
-projet2-secure-boot/build/
+secure-boot/u-boot/
+freertos-stm32/Drivers/
+freertos-stm32/FreeRTOS/
+freertos-stm32/Middlewares/
+freertos-stm32/build/
+secure-boot/build/
 
 # Fichiers Ghidra temporaires
 *.db
