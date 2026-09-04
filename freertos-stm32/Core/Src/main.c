@@ -20,16 +20,15 @@ ADC_HandleTypeDef  hadc1;
  * to place a real stack canary at (dynamically-allocated tasks don't expose
  * their stack base in this FreeRTOS version, so LED/UART/Sensor instead
  * rely on the native configCHECK_FOR_STACK_OVERFLOW=2 watermark check). */
-/* 128 words (512 bytes) was enough for the task's own busy-loop body, but
- * that never actually exercised its real worst-case stack usage: once the
- * task could actually run (see the priority fix above) and called
- * vTaskDelay(), the full unprivileged -> SVC -> privileged -> kernel call
- * chain overflowed it -- confirmed on real hardware via
- * vApplicationStackOverflowHook() firing for "Untrusted" (a silent
- * NVIC_SystemReset(), no fault message, which is why it looked different
- * from every other bug in this file's history). Must stay a power of two
- * for the MPU region size/alignment requirement. */
-#define UNTRUSTED_STACK_WORDS 512
+/* 128 words (512 bytes) is genuinely enough here -- an earlier diagnosis
+ * blamed vApplicationStackOverflowHook() firing for "Untrusted" on this
+ * being undersized and grew it to 256 then 512 words with no change, which
+ * was the right instinct (ruling out a real overflow) but the wrong
+ * culprit: see the comment above the Security_RegisterTask() call below
+ * for the actual cause (a canary-placement collision with FreeRTOS's own
+ * native overflow check, nothing to do with stack size at all). Must stay
+ * a power of two for the MPU region size/alignment requirement. */
+#define UNTRUSTED_STACK_WORDS 128
 static StackType_t untrusted_stack[UNTRUSTED_STACK_WORDS] __attribute__((aligned(UNTRUSTED_STACK_WORDS * sizeof(StackType_t))));
 
 /* Private RAM region granted to the Untrusted task -- the only memory
@@ -122,7 +121,7 @@ int main(void){
          * privilege-raise/lower round trip. Left at priority 1 (starved but
          * stable) until that's properly root-caused -- this means the
          * VIOLATE demo cannot be completed on real hardware yet. */
-        .uxPriority   = 1, /* no portPRIVILEGE_BIT -> unprivileged */
+        .uxPriority   = 2, /* no portPRIVILEGE_BIT -> unprivileged; reproducing the open SVC/PendSV bug for investigation */
         .puxStackBuffer = untrusted_stack,
         .xRegions = {
             { untrusted_scratch, UNTRUSTED_SCRATCH_BYTES, portMPU_REGION_READ_WRITE },
@@ -143,8 +142,21 @@ int main(void){
      * uxTaskGetStackHighWaterMark()) as part of prvInitialiseNewTask() --
      * planting the canary before that call just gets it overwritten by the
      * fill, so Security_CheckCanaries() sees a permanent false-positive
-     * "overflow" and resets the board in a loop before anything ever runs. */
-    Security_RegisterTask("Untrusted", &untrusted_stack[0]);
+     * "overflow" and resets the board in a loop before anything ever runs.
+     *
+     * Placed at index 4, NOT index 0: stack_macros.h's own native
+     * configCHECK_FOR_STACK_OVERFLOW==2 check independently inspects
+     * pxStack[0..3] (the bottom 4 words) on every context switch, expecting
+     * them to still hold FreeRTOS's own 0xa5a5a5a5 fill pattern. Confirmed
+     * on real hardware via GDB: our canary at index 0 (0xDEADBEEF) collided
+     * with that exact check, and FreeRTOS's OWN overflow hook fired
+     * (vApplicationStackOverflowHook(), a silent NVIC_SystemReset() with no
+     * fault message) the instant the Untrusted task was first switched
+     * away from -- for any reason at all, not specifically vTaskDelay() or
+     * the SVC/PendSV path, which is why growing the stack (128/256/512
+     * words, all identical failure) never made a difference: it was never
+     * a real overflow. */
+    Security_RegisterTask("Untrusted", &untrusted_stack[4]);
 
     vTaskStartScheduler();
     while(1){}

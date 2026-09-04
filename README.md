@@ -12,7 +12,7 @@
 ## Projects
 
 ### 🔒 [P1 — FreeRTOS Hardened on STM32](./freertos-stm32)
-Multitask RTOS system with MPU memory isolation, hardware watchdog and authenticated UART communication on ARM Cortex-M.  
+Multitask RTOS system with MPU memory isolation, hardware watchdog and authenticated UART communication on ARM Cortex-M. An unprivileged task deliberately writing outside its granted region triggers a real, caught MemManage fault on real hardware — verified against the linked ELF's own symbol table, not just observed — after which the board resets and resumes stable operation.  
 `C` `FreeRTOS` `STM32` `MPU` `mbedTLS` `OpenOCD`
 
 ---
