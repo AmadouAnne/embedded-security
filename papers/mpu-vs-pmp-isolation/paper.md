@@ -20,7 +20,7 @@ La question de recherche n'est pas « l'isolation fonctionne-t-elle sur les deux
 1. **Comment le même modèle de menace se traduit-il** dans deux mécanismes de région structurellement différents, et à quel coût en complexité de configuration ?
 2. **Que révèle le passage du papier (ou de la simulation) au matériel réel** sur la fiabilité de ce qui est présenté, dans la littérature et dans les ports logiciels existants, comme une isolation « prête à l'emploi » ?
 
-Ce travail apporte une réponse empirique aux deux questions à partir de deux implémentations complètes : `freertos-stm32` (ARM Cortex-M4, matériel réel) et `riscv-pmp-isolation` (RISC-V rv64imac, QEMU).
+Ce travail apporte une réponse empirique aux deux questions à partir de deux implémentations complètes : `freertos-stm32` (ARM Cortex-M4, matériel réel) et `riscv-pmp-isolation` (RISC-V rv64imac, QEMU). Il prolonge la même démarche empirique, centrée sur un système réel plutôt que sur un modèle de système, que nos travaux précédents sur la détection légère d'anomalies en environnement Linux contraint [Anne, 2026] — appliquée ici à l'isolation mémoire plutôt qu'à la détection d'intrusion.
 
 ## 2. Modèle de menace
 
@@ -191,3 +191,7 @@ Le code source complet des deux implémentations, les instructions de compilatio
 - **P7 (RISC-V)** ne nécessite que la chaîne d'outils `riscv64-elf` et QEMU (`qemu-system-riscv64`) — aucun matériel. `make run` compile et démarre directement la démonstration de l'ordonnanceur Phase 3 du §5.3, l'UART étant routé vers l'entrée/sortie standard.
 
 Chaque sortie réelle capturée et citée dans ce document (§3.2, §5.2, §5.3) est reproductible exactement avec les commandes ci-dessus, sur le commit référencé par l'historique du dépôt.
+
+## Références
+
+- Anne, A. T. (2026). *Analyse de la pertinence des métriques système natives pour la détection d'anomalies sous Linux en environnements contraints*. Prépublication HAL hal-05486729. [hal.science/hal-05486729v1](https://hal.science/hal-05486729v1)

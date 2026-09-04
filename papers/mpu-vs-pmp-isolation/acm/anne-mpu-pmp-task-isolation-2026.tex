@@ -53,7 +53,7 @@ The research question is not ``does isolation work on both architectures'' -- by
   \item What does moving from paper (or simulation) to real hardware reveal about the reliability of what the literature, and existing software ports, present as ``ready-to-use'' isolation?
 \end{enumerate}
 
-This work answers both questions empirically, from two complete implementations: \texttt{freertos-stm32} (ARM Cortex-M4, real hardware) and \texttt{riscv-pmp-isolation} (RISC-V rv64imac, QEMU). Both are publicly available in the same repository as this paper.\footnote{\url{https://github.com/AmadouAnne/embedded-security}}
+This work answers both questions empirically, from two complete implementations: \texttt{freertos-stm32} (ARM Cortex-M4, real hardware) and \texttt{riscv-pmp-isolation} (RISC-V rv64imac, QEMU). Both are publicly available in the same repository as this paper.\footnote{\url{https://github.com/AmadouAnne/embedded-security}} It follows the same empirical, real-system-first approach as our earlier work on lightweight anomaly detection for constrained embedded Linux~\cite{anne2026metrics}, which relied on native kernel counters rather than heavyweight instrumentation; here, the same emphasis on validating against a real, deployable system -- rather than a model of one -- is applied to memory isolation instead of intrusion detection.
 
 \section{Threat Model}
 \label{sec:threat}
