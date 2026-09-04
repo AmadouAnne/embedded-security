@@ -42,3 +42,26 @@ void pmp_configure(void)
     uint32_t pmpcfg0 = cfg0 | (cfg1 << 8) | (cfg2 << 16) | (cfg3 << 24);
     __asm__ volatile("csrw pmpcfg0, %0" :: "r"(pmpcfg0));
 }
+
+void pmp_configure_for_task(uintptr_t code_start, uintptr_t code_end,
+                             uintptr_t data_start, uintptr_t data_end)
+{
+    /* Same 4-entry TOR layout as pmp_configure() above, but reprogrammed
+     * for whichever task is about to run -- reusing the same entries
+     * rather than allocating one set per task means the total task count
+     * isn't bounded by the CPU's PMP entry count (16 here), only by RAM,
+     * matching how a real RTOS's MPU port reuses its configurable regions
+     * per task rather than dedicating hardware regions permanently. */
+    __asm__ volatile("csrw pmpaddr0, %0" :: "r"(code_start >> 2));
+    __asm__ volatile("csrw pmpaddr1, %0" :: "r"(code_end   >> 2));
+    __asm__ volatile("csrw pmpaddr2, %0" :: "r"(data_start >> 2));
+    __asm__ volatile("csrw pmpaddr3, %0" :: "r"(data_end   >> 2));
+
+    uint32_t cfg0 = PMP_A_OFF;
+    uint32_t cfg1 = PMP_A_TOR | PMP_R | PMP_X;
+    uint32_t cfg2 = PMP_A_OFF;
+    uint32_t cfg3 = PMP_A_TOR | PMP_R | PMP_W;
+
+    uint32_t pmpcfg0 = cfg0 | (cfg1 << 8) | (cfg2 << 16) | (cfg3 << 24);
+    __asm__ volatile("csrw pmpcfg0, %0" :: "r"(pmpcfg0));
+}

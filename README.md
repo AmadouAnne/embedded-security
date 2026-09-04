@@ -48,7 +48,7 @@ Correlation Power Analysis (CPA) against AES-128's first-round SubBytes — full
 ---
 
 ### 🧩 [P7 — RISC-V PMP Task Isolation](./riscv-pmp-isolation)
-Comparative counterpart to P1: the same untrusted-task-isolation threat model, ported from ARM Cortex-M's MPU to RISC-V's structurally different Physical Memory Protection (PMP). An untrusted U-mode task granted R+X/R+W on only its own code and scratch memory triggers a real, caught PMP trap the moment it touches anything else — verified against the linked ELF's own symbol table, not just observed. A minimal multi-task scheduler and real hardware validation are next.  
+Comparative counterpart to P1: the same untrusted-task-isolation threat model, ported from ARM Cortex-M's MPU to RISC-V's structurally different Physical Memory Protection (PMP). A minimal M-mode round-robin scheduler reconfigures PMP on every context switch between two sibling U-mode tasks; one deliberately corrupts the other's memory once scheduled, the scheduler catches and kills only the offender, and the sibling keeps running untouched — verified against the linked ELF's own symbol table, not just observed. Validated in QEMU; real hardware validation is next, pending a RISC-V board.  
 `RISC-V` `C` `QEMU` `PMP`
 
 ---

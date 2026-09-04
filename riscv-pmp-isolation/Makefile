@@ -9,8 +9,9 @@ SIZE    = $(CROSS)size
 ARCH_FLAGS = -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany
 
 C_SOURCES   = Core/Src/main.c Core/Src/uart.c Core/Src/pmp.c Core/Src/trap.c \
-              Core/Src/sifive_test.c Core/Src/untrusted_task.c
-ASM_SOURCES = Core/Src/start.S
+              Core/Src/sifive_test.c Core/Src/untrusted_task.c \
+              Core/Src/clint.c Core/Src/scheduler.c Core/Src/task_a.c Core/Src/task_b.c
+ASM_SOURCES = Core/Src/start.S Core/Src/context_switch.S
 
 C_INCLUDES = -ICore/Inc
 

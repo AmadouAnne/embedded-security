@@ -29,6 +29,26 @@ SECTIONS
         _untrusted_text_end = .;
     } > RAM
 
+    /* Phase 3: TaskA/TaskB, each in their own output section for the same
+     * reason as .text.untrusted above -- pmp_configure_for_task() needs
+     * exact, linker-verified bounds for whichever task it's granting
+     * access to, never assumed addresses. */
+    .text.taskA : {
+        . = ALIGN(4);
+        _taska_text_start = .;
+        *(.text.taskA)
+        . = ALIGN(4);
+        _taska_text_end = .;
+    } > RAM
+
+    .text.taskB : {
+        . = ALIGN(4);
+        _taskb_text_start = .;
+        *(.text.taskB)
+        . = ALIGN(4);
+        _taskb_text_end = .;
+    } > RAM
+
     .text : {
         *(.text*)
     } > RAM
@@ -46,6 +66,22 @@ SECTIONS
         *(.data.scratch)
         . = ALIGN(4);
         _scratch_end = .;
+    } > RAM
+
+    .data.taskA : {
+        . = ALIGN(4);
+        _taska_data_start = .;
+        *(.data.taskA)
+        . = ALIGN(4);
+        _taska_data_end = .;
+    } > RAM
+
+    .data.taskB : {
+        . = ALIGN(4);
+        _taskb_data_start = .;
+        *(.data.taskB)
+        . = ALIGN(4);
+        _taskb_data_end = .;
     } > RAM
 
     .data : {

@@ -39,12 +39,11 @@ void __attribute__((interrupt("machine"), aligned(4))) trap_handler(void)
     sifive_poweroff();
 }
 
-void trap_init(void)
+void trap_init(uintptr_t handler)
 {
-    uintptr_t handler = (uintptr_t)trap_handler;
     /* mtvec mode bits [1:0] = 00 selects direct mode: all traps vector to
-     * `handler` exactly (no offsetting by cause). trap_handler is at
-     * least 4-byte aligned (all RISC-V code is), satisfying mtvec's
-     * alignment requirement for direct mode. */
+     * `handler` exactly (no offsetting by cause). Both trap_handler and
+     * trap_entry are at least 4-byte aligned (all RISC-V code is),
+     * satisfying mtvec's alignment requirement for direct mode. */
     __asm__ volatile("csrw mtvec, %0" :: "r"(handler));
 }

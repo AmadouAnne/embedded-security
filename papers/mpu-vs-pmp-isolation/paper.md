@@ -73,7 +73,7 @@ Cible : RISC-V rv64imac (extensions `_zicsr_zifencei` requises explicitement par
 
 Autre différence structurelle : le mode M est par défaut **exempté** de tout contrôle PMP (sauf verrouillage explicite d'une entrée), alors que le mode U échoue fermé — toute adresse ne correspondant à aucune entrée PMP est refusée par défaut. La carte mémoire (RAM à `0x80000000`, UART NS16550A à `0x10000000`, périphérique de fin d'exécution `sifive_test` à `0x100000`) a été confirmée empiriquement via le DTB généré par QEMU plutôt que supposée depuis la documentation.
 
-### 5.2 Résultat obtenu (Phase 2, matériel réel en attente)
+### 5.2 Résultat obtenu — Phase 2 : isolation à tâche unique
 
 Quatre entrées PMP configurent deux plages effectives accordées à une tâche U-mode : lecture+exécution sur son propre code, lecture+écriture sur sa propre zone de travail et sa pile. La tâche touche légitimement sa zone de travail, puis écrit délibérément dans `g_secure_secret`, hors de toute plage accordée. Sortie réelle, capturée (non illustrative) :
 
@@ -97,9 +97,34 @@ Croisement avec la table de symboles du binaire lié (`riscv64-elf-nm`) :
 
 `mtval` correspond exactement à l'adresse de `g_secure_secret`, laquelle se situe au tout premier octet suivant la fin de la région de travail accordée — la frontière est appliquée précisément, sans marge. `mepc` se situe à l'intérieur du code accordé à la tâche non privilégiée, confirmant que la faute a bien été levée depuis du code exécuté en mode U, non depuis un autre contexte.
 
-### 5.3 Limite explicite : validation en simulation uniquement
+### 5.3 Résultat obtenu — Phase 3 : ordonnanceur multi-tâches et isolation entre tâches sœurs
 
-Contrairement à P1, ce résultat n'est **pas encore validé sur silicium réel** : aucune carte RISC-V n'était disponible au moment de ce travail. La Phase 4 (validation matérielle, par exemple sur ESP32-C3) reste une étape ouverte. Ce travail assume pleinement cette limite plutôt que de la dissimuler — c'est précisément parce que P1 a révélé une chaîne de dix bugs invisibles hors matériel réel que le résultat QEMU de P7, aussi propre soit-il, doit être présenté comme provisoire tant qu'il n'a pas subi la même épreuve.
+La Phase 2 répond à la question « du code non privilégié peut-il atteindre un secret du noyau » — elle ne dit rien du **coût d'intégration RTOS** que le §6 de la version précédente de cette étude laissait justement en suspens côté RISC-V. La Phase 3 comble ce manque : un ordonnanceur M-mode minimal, à tour de rôle, préempte deux tâches U-mode structurellement identiques via une interruption matérielle réelle (minuteur CLINT de la machine QEMU `virt`, confirmé à 10 MHz par l'arbre de périphériques de la machine elle-même) et **reconfigure les entrées PMP à chaque changement de contexte** — l'équivalent structurel exact, côté RISC-V, du réarmement des `MemoryRegions` par tâche qu'effectue `xTaskCreateRestricted()` côté ARM (§3).
+
+La tâche A travaille légitimement pendant plusieurs quanta d'ordonnancement (les deux compteurs progressent de façon réellement entrelacée, non en simple alternance, preuve que la préemption est authentique), puis écrit délibérément dans le compteur de la tâche B — une mémoire qu'aucune des deux tâches ne partage, isolée uniquement par les régions PMP que l'ordonnanceur substitue à chaque commutation. Sortie réelle, capturée :
+
+```
+[sched] tick -- TaskA=counter: 0x0000000000000004
+[sched]         TaskB=counter: 0x0000000000000005
+
+=== TRAP: PMP violation ===
+Task: TaskA
+Store/AMO access fault (PMP denied write)
+mepc : 0x0000000080000078
+mtval: 0x0000000080000d00
+[sched] tick -- TaskA=counter: 0x0000000000000005
+[sched]         TaskB=counter: 0x0000000000000005
+[sched] tick -- TaskA=counter: 0x0000000000000005
+[sched]         TaskB=counter: 0x0000000000000006
+```
+
+`mtval` correspond exactement à l'adresse du compteur de la tâche B, qui se trouve être le tout premier octet de sa propre région de données — soit un octet après la fin de la région accordée à la tâche A. La tâche fautive est immédiatement écartée de l'ordonnancement (son compteur reste figé dans tous les relevés suivants) tandis que la tâche B, à qui rien n'a été accordé par la configuration PMP de la tâche A et qu'elle n'a jamais touchée, continue de progresser sans interruption. La violation a été **contenue à sa source**, non simplement détectée : c'est la différence entre un mécanisme de protection et un simple journal d'incident.
+
+Cette phase a elle-même produit une observation méthodologique transférable, dans le droit fil du §4 : un premier bug — omettre de configurer le PMP pour la première tâche avant le tout premier retour en mode utilisateur, puisque le PMP démarre avec toutes les entrées désactivées et que le mode U échoue alors fermé sur absolument tout, y compris sa propre première instruction — a été trouvé et corrigé rapidement. Un second symptôme, en revanche, a été activement pris pour un bug de commutation de contexte (mauvais registre restauré, compteur de programme obsolète) pendant un temps non négligeable d'investigation par GDB, alors qu'il s'agissait d'un artefact de vitesse : la boucle d'attente active des tâches, dimensionnée pour du silicium réel, prenait sous l'émulation logicielle QEMU plusieurs secondes réelles par itération complète — bien plus long que n'importe quelle fenêtre d'observation utilisée pour la diagnostiquer. Un symptôme sensible au facteur temps peut être visuellement indiscernable d'une erreur de logique ; ce n'est pas parce qu'un compteur semble figé que l'algorithme qui le fait progresser est erroné.
+
+### 5.4 Limite explicite : validation en simulation uniquement
+
+Contrairement à P1, ce résultat n'est **pas encore validé sur silicium réel** : aucune carte RISC-V n'était disponible au moment de ce travail (vérifié explicitement via `lsusb` : seul le ST-Link de la cible ARM était détecté). La Phase 4 (validation matérielle, par exemple sur ESP32-C3) reste une étape ouverte. Ce travail assume pleinement cette limite plutôt que de la dissimuler — c'est précisément parce que P1 a révélé une chaîne de dix bugs invisibles hors matériel réel que le résultat QEMU de P7, aussi propre soit-il désormais pour les Phases 2 et 3, doit être présenté comme provisoire tant qu'il n'a pas subi la même épreuve.
 
 ## 6. Analyse comparative
 
@@ -110,10 +135,11 @@ Contrairement à P1, ce résultat n'est **pas encore validé sur silicium réel*
 | Élévation de privilège | instruction `SVC`, gestion par `vPortSVCHandler`, vérification de la plage appelante | instruction `ECALL`, gestion logicielle en mode M |
 | Comportement par défaut hors région | dépend de la configuration (`PRIVDEFENA`) | mode U : échec fermé systématique ; mode M : exempté sauf verrouillage |
 | Exemption du mode privilégié | oui, mais pas de la logique applicative (RTOS entier soumis au même schéma de régions) | oui, intégrale pour le mode M |
-| Dépendance à un RTOS pour la démonstration | oui (FreeRTOS-MPU, port dédié `ARM_CM4_MPU`) | non (bare-métal, boucle unique) |
+| Ordonnancement multi-tâches avec reconfiguration par tâche | oui (FreeRTOS-MPU, port dédié `ARM_CM4_MPU`) | oui (ordonnanceur M-mode minimal, écrit pour ce travail) |
+| Isolation vérifiée entre tâches sœurs (pas seulement tâche/noyau) | non testé dans ce travail (P1 s'arrête à la démo tâche/secret noyau) | oui (Phase 3, §5.3) |
 | Validation | matérielle réelle (Nucleo-F411RE) | simulée (QEMU `virt`), matérielle en attente |
 
-Le constat central n'est pas que l'un des deux mécanismes serait supérieur : les deux atteignent l'objectif de sécurité visé, avec une précision comparable (interception au mot près, vérifiée par confrontation aux symboles du binaire). La différence significative se situe dans **la surface d'intégration**. Sur ARM, l'isolation est indissociable du port RTOS complet (`ARM_CM4_MPU`, `MPU_WRAPPERS_V1`) : la moitié des dix bugs rencontrés (n° 3, 4, 9, 10) proviennent précisément de cette intégration — l'interaction entre le schéma de régions, l'ordonnanceur, le script de liaison et les conventions du port, plutôt que du mécanisme MPU pris isolément. Sur RISC-V, l'implémentation bare-métal de ce travail isole le mécanisme PMP de toute intégration RTOS, ce qui simplifie le raisonnement mais ne permet pas encore de conclure sur le coût d'intégration équivalent pour RISC-V (Phase 3, ordonnanceur minimal reconfigurant les entrées PMP à chaque changement de contexte, reste à réaliser).
+Le constat central n'est pas que l'un des deux mécanismes serait supérieur : les deux atteignent l'objectif de sécurité visé, avec une précision comparable (interception au mot près, vérifiée par confrontation aux symboles du binaire). La différence significative se situe dans **la surface d'intégration**. Sur ARM, l'isolation est indissociable du port RTOS complet (`ARM_CM4_MPU`, `MPU_WRAPPERS_V1`) : la moitié des dix bugs rencontrés (n° 3, 4, 9, 10) proviennent précisément de cette intégration — l'interaction entre le schéma de régions, l'ordonnanceur, le script de liaison et les conventions du port, plutôt que du mécanisme MPU pris isolément. Sur RISC-V, l'ordonnanceur minimal de la Phase 3 réalise la même intégration en substance (reconfiguration des régions à chaque commutation, cohabitation avec une interruption matérielle) avec une chaîne de bugs bien plus courte (deux, contre dix côté ARM) — mais cette comparaison brute doit être lue avec prudence : l'ordonnanceur RISC-V ici est un code minimal écrit spécifiquement pour ce travail, non un port tiers largement déployé suivant des conventions externes (comme `ARM_CM4_MPU`/`MPU_WRAPPERS_V1`), et il n'a pas encore affronté l'épreuve du matériel réel qui a précisément révélé la majorité des bugs côté ARM. L'écart observé dit peut-être autant sur la maturité relative des deux implémentations que sur les mécanismes eux-mêmes.
 
 ## 7. Discussion : au-delà du résultat, la méthode
 
@@ -122,7 +148,7 @@ La contribution la plus généralisable de ce travail n'est peut-être pas la co
 ## 8. Limites et travaux futurs
 
 - La démonstration de faute MPU sur cible ARM réelle (commande `VIOLATE`) reste inaboutie : la tâche non privilégiée, effectivement ordonnancée, échoue de façon reproductible dès son premier appel à un service RTOS réel via la passerelle d'appel système, par un mécanisme non encore élucidé — le pointeur de pile enregistré dans le bloc de contrôle de tâche au moment de l'échec ne correspond à aucune adresse de la pile propre de la tâche, ce qui exclut un simple sous-dimensionnement (testé à 128, 256 et 512 mots, échec identique) et pointe vers un problème plus structurel dans le suivi du contexte à travers l'aller-retour d'élévation de privilège. Une investigation dédiée, pas-à-pas au niveau de l'assembleur du gestionnaire SVC/PendSV, reste à mener.
-- La validation RISC-V est actuellement limitée à la simulation QEMU ; la Phase 4 (validation sur matériel réel) et la Phase 3 (ordonnanceur multi-tâches reconfigurant la PMP à chaque changement de contexte, pendant structurel de `xTaskCreateRestricted()`) restent à réaliser, ce qui limite pour l'instant la portée de la comparaison du §6 à la seule primitive d'isolation, hors coût d'intégration RTOS côté RISC-V.
+- La validation RISC-V est actuellement limitée à la simulation QEMU ; la Phase 4 (validation sur matériel réel) reste à réaliser. La Phase 3 (ordonnanceur multi-tâches reconfigurant la PMP à chaque changement de contexte) est désormais faite (§5.3), mais reste elle-même non validée sur silicium — et, comme discuté au §6, il s'agit d'un code minimal écrit pour ce travail, non d'un port tiers largement déployé comme `ARM_CM4_MPU` : la comparaison du coût d'intégration entre les deux architectures reste donc partielle tant que l'ordonnanceur RISC-V n'a pas subi une épreuve de maturité comparable (usage réel, matériel réel, revue externe).
 - Le protocole d'authentification UART par défi-réponse HMAC-SHA256 (P1) n'a pas encore été testé en conditions de charge réelle une fois le système stabilisé.
 
 ## 9. Conclusion
