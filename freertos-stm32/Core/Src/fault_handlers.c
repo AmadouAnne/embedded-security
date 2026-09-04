@@ -5,14 +5,25 @@
 
 extern UART_HandleTypeDef huart2;
 
-/* Raw polling UART write -- deliberately does not go through the FreeRTOS
- * mutex/HAL abstractions used elsewhere: fault handlers run with interrupts
- * masked at a priority above the scheduler, so we only rely on direct
- * register-level busy-waiting (what HAL_UART_Transmit already reduces to in
- * blocking mode) and never touch RTOS primitives. */
+/* Raw polling UART write -- deliberately does not go through HAL_UART_Transmit:
+ * that function's timeout is measured with HAL_GetTick(), which is driven by
+ * the SysTick interrupt. Fault handlers execute at a priority that blocks
+ * SysTick from firing, so HAL_GetTick() never advances and a tick-based
+ * timeout never expires -- HAL_UART_Transmit would hang here forever instead
+ * of returning. Poll the USART registers directly instead, with no
+ * tick/interrupt dependency at all. */
+static void fault_uart_putc(char c)
+{
+    while (!(huart2.Instance->SR & USART_SR_TXE)) { }
+    huart2.Instance->DR = (uint8_t)c;
+}
+
 static void fault_uart_print(const char *msg)
 {
-    HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), 200);
+    while (*msg) {
+        fault_uart_putc(*msg++);
+    }
+    while (!(huart2.Instance->SR & USART_SR_TC)) { }
 }
 
 static void report_and_reset(const char *name)

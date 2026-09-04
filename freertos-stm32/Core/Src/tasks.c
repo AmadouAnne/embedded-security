@@ -16,7 +16,17 @@ extern SemaphoreHandle_t  xUARTMutex;
 extern UART_HandleTypeDef huart2;
 extern ADC_HandleTypeDef  hadc1;
 
-volatile uint8_t  g_violate_requested = 0;
+/* vTask_Untrusted (unprivileged) reads and clears this flag every loop
+ * iteration -- it must live inside one of the task's own granted MPU
+ * regions, or the mere act of checking it faults. A bare
+ * "volatile uint8_t g_violate_requested" doesn't satisfy that (the Cortex-M4
+ * MPU's minimum region size is 32 bytes, aligned to its own size, and nearby
+ * globals would otherwise share that block), so it gets the same dedicated,
+ * isolated, aligned-buffer treatment as untrusted_scratch in main.c.
+ * Confirmed on real hardware: this was a real, previously-unobserved bug --
+ * it only ever surfaced once the Untrusted task's earlier priority-inversion
+ * starvation (see main.c) was fixed and it could finally run at all. */
+uint8_t g_violate_signal[32] __attribute__((aligned(32)));
 volatile uint32_t g_secure_secret     = 0xC0FFEE;
 
 /* Demo pre-shared key for the UART challenge-response protocol.
@@ -159,7 +169,13 @@ void vTask_Sensor(void *pvParameters){
         }
         HAL_ADC_Stop(&hadc1);
         Security_Heartbeat(SECURITY_TASK_SENSOR);
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        /* Must stay well under the IWDG's ~1.6s window (security.c) -- at
+         * the previous 2000ms period, this task's own heartbeat bit could
+         * never be set inside the same window as LED's and UART's, so
+         * Security_KickIfHealthy() could never see SECURITY_TASK_ALL and
+         * the watchdog reset the board on a fixed, unavoidable cadence
+         * regardless of whether anything was actually hung. */
+        vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
 

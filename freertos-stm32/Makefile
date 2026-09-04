@@ -52,7 +52,7 @@ C_INCLUDES = \
 CFLAGS = $(MCU_FLAGS) $(DEFINES) $(C_INCLUDES) -Wall -fdata-sections -ffunction-sections -Os -g3
 
 LDSCRIPT = STM32F411RETx_FLASH.ld
-LDFLAGS  = $(MCU_FLAGS) -specs=nano.specs -T$(LDSCRIPT) -Wl,--gc-sections -lc -lm -lnosys
+LDFLAGS  = $(MCU_FLAGS) -specs=nano.specs -T$(LDSCRIPT) -Wl,--gc-sections -u _printf_float -lc -lm -lnosys
 
 OBJECTS  = $(addprefix $(BUILD_DIR)/,$(C_SOURCES:.c=.o))
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(ASM_SOURCES:.s=.o))

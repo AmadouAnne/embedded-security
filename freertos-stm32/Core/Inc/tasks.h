@@ -12,8 +12,12 @@ void vTask_Sensor(void *pvParameters);
 void vTask_Untrusted(void *pvParameters);
 
 /* Set by vTask_UART when it parses a "VIOLATE" command; read (and cleared)
- * by vTask_Untrusted on its next iteration. */
-extern volatile uint8_t g_violate_requested;
+ * by vTask_Untrusted on its next iteration. Byte [0] of a dedicated,
+ * 32-byte-aligned buffer (not a bare uint8_t) so it can be granted to the
+ * unprivileged Untrusted task as its own MPU region in main.c -- see the
+ * comment above its definition in tasks.c. */
+extern uint8_t g_violate_signal[32];
+#define g_violate_requested (g_violate_signal[0])
 
 /* Deliberately outside of any task's MPU region -- the demo target for the
  * illegal write performed by vTask_Untrusted. */
