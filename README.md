@@ -59,9 +59,10 @@ Comparative counterpart to P1: the same untrusted-task-isolation threat model, p
 Prépublication HAL — Janvier 2026  
 → [hal.science/hal-05486729v1](https://hal.science/hal-05486729v1)
 
-**Isolation de tâches non fiables en systèmes embarqués contraints : étude comparative MPU ARM Cortex-M4 / PMP RISC-V, avec validation matérielle réelle**  
-Brouillon — à partir de [P1](./freertos-stm32) et [P7](./riscv-pmp-isolation)  
-→ [papers/mpu-vs-pmp-isolation](./papers/mpu-vs-pmp-isolation/paper.md)
+**Isolating Untrusted Tasks on Constrained Embedded Systems: A Comparative Study of ARM Cortex-M MPU and RISC-V PMP, with Real-Hardware Validation**  
+Working paper — from [P1](./freertos-stm32) and [P7](./riscv-pmp-isolation)  
+→ French draft: [papers/mpu-vs-pmp-isolation/paper.md](./papers/mpu-vs-pmp-isolation/paper.md)  
+→ English, ACM format: [papers/mpu-vs-pmp-isolation/acm/paper.pdf](./papers/mpu-vs-pmp-isolation/acm/paper.pdf) ([source](./papers/mpu-vs-pmp-isolation/acm/paper.tex))
 
 ---
 
