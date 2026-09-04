@@ -47,6 +47,12 @@ Correlation Power Analysis (CPA) against AES-128's first-round SubBytes — full
 
 ---
 
+### 🧩 [P7 — RISC-V PMP Task Isolation](./riscv-pmp-isolation)
+Comparative counterpart to P1: the same untrusted-task-isolation threat model, ported from ARM Cortex-M's MPU to RISC-V's structurally different Physical Memory Protection (PMP). Bare-metal M-mode bring-up validated under QEMU; PMP-based fault trapping and a minimal multi-task scheduler in progress. Real hardware validation planned once a RISC-V board is available.  
+`RISC-V` `C` `QEMU` `PMP`
+
+---
+
 ## Research
 
 **Analyse de la pertinence des métriques système natives pour la détection d'anomalies sous Linux en environnements contraints**  
@@ -58,9 +64,9 @@ Prépublication HAL — Janvier 2026
 ## Stack
 
 ```
-Languages  : C · Python · Bash · Assembly (MIPS)
-Hardware   : STM32 Nucleo-F411RE · Raspberry Pi 4
+Languages  : C · Python · Bash · Assembly (MIPS, RISC-V)
+Hardware   : STM32 Nucleo-F411RE · Raspberry Pi 4 · RISC-V (QEMU virt, hardware pending)
 Security   : Ghidra (PyGhidra) · Binwalk · OpenSSL · mbedTLS
-Embedded   : FreeRTOS-MPU · U-Boot (FIT) · QEMU-user · OpenOCD
+Embedded   : FreeRTOS-MPU · U-Boot (FIT) · QEMU-user · QEMU-system-riscv · OpenOCD · RISC-V PMP
 Protocols  : Modbus TCP
 ```
