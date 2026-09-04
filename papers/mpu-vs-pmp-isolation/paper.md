@@ -183,4 +183,11 @@ Le résultat le plus généralisable de ce travail n'est donc ni « MPU » ni «
 
 ---
 
-*Code source complet, historique de découverte des bugs et instructions de reproduction : dépôt `embedded-security` (projets `freertos-stm32` et `riscv-pmp-isolation`).*
+## Disponibilité des données et du code
+
+Le code source complet des deux implémentations, les instructions de compilation et l'historique complet des commits documentant la découverte et la correction de chaque bug sont disponibles publiquement : [github.com/AmadouAnne/embedded-security](https://github.com/AmadouAnne/embedded-security), dossiers `freertos-stm32` (P1) et `riscv-pmp-isolation` (P7).
+
+- **P1 (ARM)** nécessite une carte Nucleo-F411RE, une sonde ST-Link, la chaîne d'outils `arm-none-eabi` et OpenOCD. `make` compile le firmware ; `openocd -f openocd/stm32f4.cfg -c "program build/freertos_hardened.bin 0x08000000 verify reset exit"` le flashe. La commande `VIOLATE`, envoyée sur l'UART de la carte (115200 8N1) une fois le système démarré, déclenche la démonstration de faute du §3.2.
+- **P7 (RISC-V)** ne nécessite que la chaîne d'outils `riscv64-elf` et QEMU (`qemu-system-riscv64`) — aucun matériel. `make run` compile et démarre directement la démonstration de l'ordonnanceur Phase 3 du §5.3, l'UART étant routé vers l'entrée/sortie standard.
+
+Chaque sortie réelle capturée et citée dans ce document (§3.2, §5.2, §5.3) est reproductible exactement avec les commandes ci-dessus, sur le commit référencé par l'historique du dépôt.

@@ -233,6 +233,17 @@ On RISC-V, rigor bears on functional coverage: beyond the question ``can unprivi
 
 The most generalizable result of this work is therefore neither ``MPU'' nor ``PMP'' in isolation, but the conjunction of both experiments: a physical memory-isolation mechanism can be correctly \emph{designed} -- sound architecture, conventions respected, favorable code review -- and still be wrong until it has been tested, whether by real silicon (as P1 demonstrated through eleven bugs, all the way to a complete demonstration) or by a threat scenario more demanding than the one initially targeted (as P7 demonstrated by moving from task-versus-kernel isolation to peer isolation). In a domain where memory isolation is a security mechanism, not a performance optimization, neither code review, nor simulation, nor even a first successful demonstration is sufficient to establish reliability -- only sustained trial, on real hardware and against scenarios increasingly close to final deployment, can. It is that trial, more than any single result at any single point in time, that this work documents.
 
+\section*{Data and Code Availability}
+
+Complete source code for both implementations, build instructions, and the full commit history documenting each bug's discovery and fix are publicly available at \url{https://github.com/AmadouAnne/embedded-security}, under the \texttt{freertos-stm32} (P1) and \texttt{riscv-pmp-isolation} (P7) directories. In particular:
+
+\begin{itemize}
+  \item \textbf{P1 (ARM)} requires a Nucleo-F411RE board, an ST-Link probe, the \texttt{arm-none-eabi} toolchain, and OpenOCD. \texttt{make} builds the firmware; \texttt{openocd -f openocd/stm32f4.cfg -c "program build/freertos\_hardened.bin 0x08000000 verify reset exit"} flashes it. The \texttt{VIOLATE} command, sent over the board's UART (115200 8N1) once the system is running, triggers the fault demonstration of Section~3.2.
+  \item \textbf{P7 (RISC-V)} requires only the \texttt{riscv64-elf} toolchain and QEMU (\texttt{qemu-system-riscv64}) -- no hardware. \texttt{make run} builds and boots the Phase~3 scheduler demonstration of Section~5.3 directly, with UART routed to standard I/O.
+\end{itemize}
+
+Every real captured output quoted in this paper (Sections~3.2, 5.2, and 5.3) can be reproduced exactly with the commands above, against the exact commit referenced by this paper's own repository history.
+
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}
 
