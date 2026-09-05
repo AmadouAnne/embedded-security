@@ -5,6 +5,7 @@
 
 **Amadou Tidiane Anne** · Master Logiciels et Systèmes Embarqués · UBO Brest  
 [![HAL](https://img.shields.io/badge/HAL-Prépublication-blue)](https://hal.science/hal-05486729v1)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22313740.svg)](https://doi.org/10.5281/zenodo.22313740)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
@@ -62,7 +63,11 @@ Prépublication HAL — Janvier 2026
 **Isolating Untrusted Tasks on Constrained Embedded Systems: A Comparative Study of ARM Cortex-M MPU and RISC-V PMP, with Real-Hardware Validation**  
 Working paper — from [P1](./freertos-stm32) and [P7](./riscv-pmp-isolation)  
 → French draft: [papers/mpu-vs-pmp-isolation/paper.md](./papers/mpu-vs-pmp-isolation/paper.md)  
-→ English, ACM format: [anne-mpu-pmp-task-isolation-2026.pdf](./papers/mpu-vs-pmp-isolation/acm/anne-mpu-pmp-task-isolation-2026.pdf) ([source](./papers/mpu-vs-pmp-isolation/acm/anne-mpu-pmp-task-isolation-2026.tex))
+→ English, ACM format: [anne-mpu-pmp-task-isolation-2026.pdf](./papers/mpu-vs-pmp-isolation/acm/anne-mpu-pmp-task-isolation-2026.pdf) ([source](./papers/mpu-vs-pmp-isolation/acm/anne-mpu-pmp-task-isolation-2026.tex))  
+→ Also deposited on HAL (pending moderation at time of writing)
+
+**Code archive**  
+This repository is archived on Zenodo with a permanent DOI: [10.5281/zenodo.22313740](https://doi.org/10.5281/zenodo.22313740)
 
 ---
 
