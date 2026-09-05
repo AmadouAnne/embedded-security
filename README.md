@@ -5,7 +5,7 @@
 
 **Amadou Tidiane Anne** · Master Logiciels et Systèmes Embarqués · UBO Brest  
 [![HAL](https://img.shields.io/badge/HAL-Prépublication-blue)](https://hal.science/hal-05486729v1)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22313740.svg)](https://doi.org/10.5281/zenodo.22313740)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22313704.svg)](https://doi.org/10.5281/zenodo.22313704)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
@@ -67,7 +67,7 @@ Working paper — from [P1](./freertos-stm32) and [P7](./riscv-pmp-isolation)
 → Also deposited on HAL (pending moderation at time of writing)
 
 **Code archive**  
-This repository is archived on Zenodo with a permanent DOI: [10.5281/zenodo.22313740](https://doi.org/10.5281/zenodo.22313740)
+This repository is archived on Zenodo with a permanent, version-independent DOI: [10.5281/zenodo.22313704](https://doi.org/10.5281/zenodo.22313704) (always resolves to the latest release; the current release is [v1.1](https://doi.org/10.5281/zenodo.22313740)).
 
 ---
 
