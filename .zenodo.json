@@ -1,0 +1,29 @@
+{
+  "title": "Embedded Security Research Portfolio",
+  "description": "Seven embedded security projects (FreeRTOS-MPU hardening on ARM Cortex-M4, U-Boot secure boot, firmware patch diffing, Modbus ICS fuzzing, ARM malware sandbox, AES-128 side-channel analysis, and RISC-V PMP task isolation), plus a comparative study of ARM MPU vs RISC-V PMP task isolation with real-hardware validation.",
+  "creators": [
+    {
+      "name": "Anne, Amadou Tidiane",
+      "orcid": "0009-0003-0178-8864",
+      "affiliation": "Université de Bretagne Occidentale (UBO)"
+    }
+  ],
+  "license": "MIT",
+  "upload_type": "software",
+  "keywords": [
+    "embedded security",
+    "memory protection unit",
+    "physical memory protection",
+    "RISC-V",
+    "ARM Cortex-M",
+    "FreeRTOS",
+    "task isolation"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://hal.science/hal-05486729v1",
+      "relation": "isSupplementTo",
+      "resource_type": "publication-preprint"
+    }
+  ]
+}
