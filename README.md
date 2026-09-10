@@ -55,7 +55,7 @@ Comparative counterpart to P1: the same untrusted-task-isolation threat model, p
 ---
 
 ### 🔑 [P8 — ML-KEM (Kyber) Side-Channel Analysis on STM32](./kyber-sca)
-Post-quantum KEM side-channel evaluation, extending P6's methodology from AES-128 to ML-KEM: [PQM4](https://github.com/mupq/pqm4) ported to a Cortex-M4 Nucleo-F411RE (forked, board support added upstream doesn't have), with two real on-hardware bugs found and fixed along the way (a clock config hanging on an absent external oscillator, an intermittent wrong-address flash write). All three ML-KEM parameter sets functionally validated against the host reference implementation on real hardware. Power trace acquisition and leakage analysis are next, pending measurement hardware.  
+Post-quantum KEM side-channel evaluation, extending P6's methodology from AES-128 to ML-KEM: [PQM4](https://github.com/mupq/pqm4) ported to a Cortex-M4 Nucleo-F411RE (forked, board support added upstream doesn't have), with two real on-hardware bugs found and fixed along the way (a clock config hanging on an absent external oscillator, an intermittent wrong-address flash write). All three ML-KEM parameter sets functionally validated against the host reference implementation on real hardware. The CPA/masking analysis pipeline (coefficient-wise attack on ML-KEM's NTT-domain pointwise multiplication) is built and validated against simulated traces — 16/16 targeted coefficients recovered unmasked, 0/16 with a correctly per-execution-randomized first-order mask, correlation collapsing to the noise floor. Real power trace acquisition against actual hardware is next, pending measurement equipment.  
 `C` `Python` `PQM4` `ML-KEM` `Cortex-M4` `Power Analysis`
 
 ---
