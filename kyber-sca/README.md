@@ -11,11 +11,14 @@ full scientific objective, threat model, and methodology.
 
 **Status: ML-KEM runs and is functionally validated on real Nucleo-F411RE
 hardware (all three parameter sets, cross-checked against the host
-reference implementation). No power trace has been captured yet — no
-side-channel result of any kind exists. This README will be updated at
-each real milestone (first trace capture, first leakage result) —
-nothing here should be read as a result until an actual command output
-is shown, exactly as in P6.**
+reference implementation). The CPA/masking analysis pipeline is built and
+validated against simulated traces (same simulated-first approach P6
+used before real hardware access). No real power trace has been
+captured yet — no side-channel result about the real firmware exists.
+This README will be updated at each real milestone (first real trace
+capture, first leakage result on real traces) — nothing here should be
+read as a result about the actual hardware until an actual command
+output against real traces is shown.**
 
 - `arm-none-eabi-gcc` 16.2.0, OpenOCD 0.12.0, `make`, `cmake` — already
   present, nothing to install.
@@ -95,6 +98,50 @@ fallback PRNG, see the RNG limitation note above) and does a full
 Alice/Bob encaps/decaps round trip — still functional validation, not a
 side-channel result.
 
+### Analysis pipeline validated on simulated traces (no real hardware involved)
+
+Before any acquisition hardware is available, the actual statistical
+pipeline (leakage hypothesis, Pearson-correlation distinguisher,
+masking contrast) was built and validated against simulated traces —
+same reasoning as [P6](../side-channel): prove the analysis code is
+correct against a known, controlled leakage model before pointing it at
+real captures. See [`docs/methodology.md`](docs/methodology.md) for
+exactly what real ML-KEM operation this simulates (coefficient-wise
+NTT-domain pointwise multiplication during decryption) and why.
+
+```
+$ python3 analysis/masking_demo.py
+=== UNMASKED implementation (3000 traces) ===
+Coefficients correct: 16/16   mean peak |r| = 0.853
+
+=== MASKED implementation (3000 traces) ===
+Coefficients correct: 0/16   mean peak |r| = 0.092
+```
+
+Same qualitative result as P6's AES masking demo: the unmasked model's
+16 targeted NTT coefficients are all correctly recovered, and the
+masked variant's correlation collapses to the noise floor (256
+candidates × 500 samples of pure chance) with 0/16 recovered — a
+first-order additive-mod-Q mask (a fresh, independent per-execution
+random share, mirroring how a real masked ML-KEM implementation would
+re-randomize on every call) defeats this naive first-order distinguisher
+completely. Caught and fixed one real bug building this: an early
+version drew the mask once for the whole simulated dataset instead of
+once per trace, which produced a misleadingly "secure-looking" 0/16 result
+that was actually just recovering the (fixed, therefore attackable) mask
+share itself instead of the secret — same peak correlation (~0.85) as
+the unmasked case. Re-randomizing the mask per trace, as a real
+countermeasure must, produces the collapse shown above.
+
+**This validates the CPA code, not the real PQM4 firmware.** The
+simulation's leakage model is intentionally simple and explicit — see
+[`analysis/simulate_traces.py`](analysis/simulate_traces.py) — and does
+not model the actual `m4fspeed` assembly's real intermediate values,
+register widths, or instruction scheduling. Once real traces exist,
+[`analysis/cpa_attack.py`](analysis/cpa_attack.py) runs unchanged against
+them (same `.npz` contract: `traces` + `ciphertext_coeffs`, optionally
+`secret_coeffs` for scoring) — nothing in it is simulation-specific.
+
 ## Planned layout
 
 - `firmware/pqm4/` — PQM4 fork (submodule, see above), Cortex-M4
@@ -103,11 +150,14 @@ side-channel result.
   [P1's](../freertos-stm32/openocd/stm32f4.cfg), already proven on this
   exact board.
 - `acquisition/` — trace capture scripts once the power measurement setup
-  is available (oscilloscope/shunt — pending, see below).
-- `analysis/` — leakage models and the CPA/TVLA distinguishers, following
-  the same structure as [`side-channel/cpa_attack.py`](../side-channel/cpa_attack.py).
+  is available (oscilloscope/shunt — pending, see below). Not started.
+- `analysis/` — `kyber_math.py` (NTT-domain arithmetic + Hamming weight,
+  role of [`side-channel/aes_sbox.py`](../side-channel/aes_sbox.py)),
+  `simulate_traces.py`, `cpa_attack.py` (works on any `.npz` with
+  `traces`/`ciphertext_coeffs`, real or simulated), `masking_demo.py` —
+  see the simulated-pipeline results above.
 - `traces/real/` — real captures once available (tracked via `.gitkeep`,
-  empty for now).
+  empty for now). `traces/*.npz` (simulated) gitignored, regenerable.
 - `results/` — plots, gitignored, regenerable from `analysis/`.
 - `docs/methodology.md` — scientific objective, threat model, and
   methodology notes, written up as we go — meant to be reused directly as
@@ -130,7 +180,14 @@ side-channel result.
    Cortex-M4.~~ Done.
 2. ~~First functional ML-KEM encaps/decaps run on the Nucleo-F411RE,
    known-answer-test validation.~~ Done — see above.
-3. Trace acquisition setup once hardware is available at home.
-4. Leakage analysis (NTT, noise sampling, decapsulation), countermeasure
-   evaluation if a leak is confirmed.
-5. `docs/methodology.md` kept current throughout, as the paper draft base.
+3. ~~Validate the CPA/masking analysis pipeline against simulated
+   traces.~~ Done — see above. Not yet done: TVLA as a complementary
+   detection step (see `docs/methodology.md`).
+4. Trace acquisition setup once hardware is available (equipment access
+   being explored via UBO's lab — not yet decided between a DIY
+   oscilloscope+shunt setup and a ChipWhisperer-class target).
+5. Point `analysis/cpa_attack.py` at real traces once captured; leakage
+   analysis on the real `crypto_kem_dec` (NTT, noise sampling,
+   re-encryption check), countermeasure evaluation if a leak is
+   confirmed.
+6. `docs/methodology.md` kept current throughout, as the paper draft base.

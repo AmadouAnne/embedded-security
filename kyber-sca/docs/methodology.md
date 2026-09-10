@@ -109,9 +109,24 @@ analyze.
 - ML-KEM-512/768/1024 functionally validated on real hardware — both the
   deterministic testvectors cross-check and the full (RNG-fallback-based)
   Alice/Bob self-test pass for `clean`/`m4fspeed`/`m4fstack`.
-- **No power trace has been captured. No side-channel analysis has
-  started. No leakage result, positive or negative, exists yet.**
-- Power acquisition setup: pending (see README).
+- The CPA/masking analysis pipeline (Section 3, coefficient-wise attack
+  on simulated NTT-domain pointwise multiplication) is built and
+  validated against simulated traces: 16/16 targeted coefficients
+  recovered unmasked, 0/16 with a (correctly per-execution-randomized)
+  first-order additive mask, correlation collapsing to the noise floor.
+  One methodological pitfall caught in the process, worth keeping in mind
+  for the eventual real masked-countermeasure evaluation too: a mask that
+  isn't freshly randomized on every single execution provides no
+  protection at all — CPA recovers a fixed mask share exactly as easily
+  as it recovers the unmasked secret, while still producing a "0/16
+  correct" result that looks superficially like a working countermeasure
+  unless the correlation magnitude itself is also checked, not just
+  whether the exact secret value was recovered.
+- **No power trace has been captured. No side-channel analysis against
+  the real firmware has started. No leakage result, positive or
+  negative, exists yet about real hardware.**
+- Power acquisition setup: pending, being explored via UBO's lab (DIY
+  oscilloscope+shunt vs. ChipWhisperer-class target — not yet decided).
 
 ## 5. Known limitations affecting scope/interpretation
 

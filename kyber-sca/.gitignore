@@ -1,0 +1,6 @@
+# Regenerable simulated data and plots -- see README.md for the exact
+# commands that produce them. Real captures go in traces/real/ and ARE
+# tracked (empty for now, kept via traces/real/.gitkeep).
+traces/*.npz
+results/*.png
+__pycache__/
