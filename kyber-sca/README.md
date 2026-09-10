@@ -29,13 +29,20 @@ is shown, exactly as in P6.**
   support since both are STM32F4/Cortex-M4F) — not upstreamed, upstream
   pqm4 only supports the F407VG Discovery and CW308T boards on this
   family.
-- **Known limitation, not yet solved:** the F411 die has no hardware RNG
-  peripheral (unlike the F407VG PQM4 already supports). This doesn't
-  affect the `*_testvectors` binaries (deterministic DRBG, no hardware
-  entropy dependency, used below), but the plain `*_test`/`*_speed`/
-  `*_stack` binaries call `rng_get_random_blocking()` and will hang on
-  real hardware until a software entropy source replaces it. To be
-  addressed before any non-KAT live encaps/decaps demo.
+- **Known limitation, worked around:** the F411 die has no hardware RNG
+  peripheral (unlike the F407VG PQM4 already supports), so
+  `rng_get_random_blocking()` hung forever against a peripheral that
+  isn't physically there. Fixed by routing this board to PQM4's existing
+  fixed-seed fallback PRNG (`common/randombytes.c`, same one
+  `mps2-an386` already uses upstream). **This is not real entropy** —
+  same sequence every boot, fine only for `*_test`/`*_speed`/`*_stack`'s
+  internal keypair/enc calls as a functional demo. It does not affect
+  this project's actual side-channel target: `crypto_kem_dec` is
+  deterministic given `sk`/`ct` (no randomness involved), and
+  `*_testvectors` was already fully deterministic by design regardless.
+  A real hardware-seeded entropy source would still be needed before any
+  claim about the security (not just function) of on-device keypair
+  generation.
 - Two real, on-hardware bugs found and fixed getting here (both fixed in
   the fork, see its commit history): the board's `clock_setup()` first
   hung forever waiting on an HSE oscillator that isn't actually running
@@ -70,6 +77,22 @@ PQM4's `testvectors.py` verifies them against the same computation run
 by the reference implementation on the host. This is functional
 correctness, not a side-channel result — no trace has been captured
 against any of these runs yet.
+
+With the RNG fallback fix above, the plain (non-KAT) self-test also
+passes on real hardware:
+
+```
+$ python3 test.py --platform nucleo-f411re -u /dev/ttyACM0 ml-kem-512
+...
+ml-kem-512 - m4fspeed SUCCESSFUL
+ml-kem-512 - m4fstack SUCCESSFUL
+ml-kem-512 - clean SUCCESSFUL
+```
+
+This one generates its own keypair on-device (via the fixed-seed
+fallback PRNG, see the RNG limitation note above) and does a full
+Alice/Bob encaps/decaps round trip — still functional validation, not a
+side-channel result.
 
 ## Planned layout
 
