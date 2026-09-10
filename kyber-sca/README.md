@@ -6,7 +6,8 @@ on a Cortex-M4 (Nucleo-F411RE, same board as [P1](../freertos-stm32)). Same meth
 encapsulation/decapsulation, build leakage hypotheses against the sensitive
 operations (NTT, noise sampling, decapsulation re-encryption check),
 correlate against real captures, and — if a leak is confirmed — evaluate a
-countermeasure.
+countermeasure. See [`docs/methodology.md`](docs/methodology.md) for the
+full scientific objective, threat model, and methodology.
 
 **Status: ML-KEM runs and is functionally validated on real Nucleo-F411RE
 hardware (all three parameter sets, cross-checked against the host
