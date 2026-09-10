@@ -8,21 +8,47 @@ operations (NTT, noise sampling, decapsulation re-encryption check),
 correlate against real captures, and — if a leak is confirmed — evaluate a
 countermeasure.
 
-**Status: directory structure only. Nothing has been built, flashed, or
-measured yet. No PQM4 code is vendored, no firmware compiles, no trace has
-been captured. This README will be updated at each real milestone (first
-functional ML-KEM run on hardware, first trace capture, first leakage
-result) — nothing here should be read as a result until an actual command
-output is shown, exactly as in P6.**
+**Status: toolchain confirmed, PQM4 ported to the Nucleo-F411RE and
+compiling cleanly — nothing has been flashed to real hardware yet, no
+trace has been captured. This README will be updated at each real
+milestone (first functional ML-KEM run *on the board*, first trace
+capture, first leakage result) — nothing here should be read as a result
+until an actual command output is shown, exactly as in P6.**
+
+- `arm-none-eabi-gcc` 16.2.0, OpenOCD 0.12.0, `make`, `cmake` — already
+  present, nothing to install.
+- [PQM4](https://github.com/mupq/pqm4) forked to
+  [`AmadouAnne/pqm4`](https://github.com/AmadouAnne/pqm4), branch
+  `nucleo-f411re-sca`, vendored here as a real git submodule (pinned
+  commit, `libopencm3`/`mupq`/`pqclean` as its own nested submodules —
+  `git submodule update --init --recursive` after cloning this repo).
+  The fork adds board support for the Nucleo-F411RE
+  (`mk/nucleo-f411re.mk` + a board branch in `common/hal-opencm3.c`,
+  closely mirroring PQM4's existing `stm32f4discovery` (STM32F407VG)
+  support since both are STM32F4/Cortex-M4F) — not upstreamed, upstream
+  pqm4 only supports the F407VG Discovery and CW308T boards on this
+  family.
+- **Known limitation, not yet solved:** the F411 die has no hardware RNG
+  peripheral (unlike the F407VG PQM4 already supports). This doesn't
+  affect the `*_testvectors` binaries (deterministic DRBG, no hardware
+  entropy dependency) used for the functional-validation step next, but
+  the plain `*_test`/`*_speed`/`*_stack` binaries call
+  `rng_get_random_blocking()` and will hang on real hardware until a
+  software entropy source replaces it. To be addressed before any
+  non-KAT live encaps/decaps demo.
+- Verified so far (host-side compilation only, board not yet flashed):
+  `crypto_kem_ml-kem-512_m4fspeed_testvectors.elf` (62,636 B text) and
+  `crypto_kem_ml-kem-512_m4fspeed_test.elf` (32,916 B text) both build
+  cleanly for `PLATFORM=nucleo-f411re` — comfortably inside the
+  F411RE's 512 KB flash / 128 KB RAM.
 
 ## Planned layout
 
-- `firmware/pqm4/` — vendored PQM4, Cortex-M4 (`mlkem512`/`kyber512`) target.
-- `firmware/Core/` — board glue (UART reporting, GPIO trigger for the
-  acquisition setup, HAL init) — same pattern as
-  [`freertos-stm32/Core`](../freertos-stm32/Core).
-- `firmware/openocd/`, `firmware/STM32F411RETx_FLASH.ld` — reused/adapted
-  from [P1](../freertos-stm32) (same Nucleo-F411RE board).
+- `firmware/pqm4/` — PQM4 fork (submodule, see above), Cortex-M4
+  ML-KEM-512/768/1024 targets.
+- `firmware/openocd/nucleo-f411re.cfg` — same file as
+  [P1's](../freertos-stm32/openocd/stm32f4.cfg), already proven on this
+  exact board.
 - `acquisition/` — trace capture scripts once the power measurement setup
   is available (oscilloscope/shunt — pending, see below).
 - `analysis/` — leakage models and the CPA/TVLA distinguishers, following
@@ -47,10 +73,11 @@ output is shown, exactly as in P6.**
 
 ## Next steps
 
-1. Toolchain check (`arm-none-eabi-gcc`, OpenOCD) and PQM4 setup for
-   Cortex-M4.
-2. First functional ML-KEM encaps/decaps run on the Nucleo-F411RE, with
-   known-answer-test validation before any side-channel work starts.
+1. ~~Toolchain check (`arm-none-eabi-gcc`, OpenOCD) and PQM4 setup for
+   Cortex-M4.~~ Done — see above.
+2. First functional ML-KEM encaps/decaps run on the Nucleo-F411RE
+   (flash + run `*_testvectors`, known-answer-test validation) before
+   any side-channel work starts.
 3. Trace acquisition setup once hardware is available at home.
 4. Leakage analysis (NTT, noise sampling, decapsulation), countermeasure
    evaluation if a leak is confirmed.

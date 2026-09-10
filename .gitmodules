@@ -1,0 +1,4 @@
+[submodule "kyber-sca/firmware/pqm4"]
+	path = kyber-sca/firmware/pqm4
+	url = https://github.com/AmadouAnne/pqm4.git
+	branch = nucleo-f411re-sca
