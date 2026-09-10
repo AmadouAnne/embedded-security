@@ -8,12 +8,13 @@ operations (NTT, noise sampling, decapsulation re-encryption check),
 correlate against real captures, and — if a leak is confirmed — evaluate a
 countermeasure.
 
-**Status: toolchain confirmed, PQM4 ported to the Nucleo-F411RE and
-compiling cleanly — nothing has been flashed to real hardware yet, no
-trace has been captured. This README will be updated at each real
-milestone (first functional ML-KEM run *on the board*, first trace
-capture, first leakage result) — nothing here should be read as a result
-until an actual command output is shown, exactly as in P6.**
+**Status: ML-KEM runs and is functionally validated on real Nucleo-F411RE
+hardware (all three parameter sets, cross-checked against the host
+reference implementation). No power trace has been captured yet — no
+side-channel result of any kind exists. This README will be updated at
+each real milestone (first trace capture, first leakage result) —
+nothing here should be read as a result until an actual command output
+is shown, exactly as in P6.**
 
 - `arm-none-eabi-gcc` 16.2.0, OpenOCD 0.12.0, `make`, `cmake` — already
   present, nothing to install.
@@ -31,16 +32,44 @@ until an actual command output is shown, exactly as in P6.**
 - **Known limitation, not yet solved:** the F411 die has no hardware RNG
   peripheral (unlike the F407VG PQM4 already supports). This doesn't
   affect the `*_testvectors` binaries (deterministic DRBG, no hardware
-  entropy dependency) used for the functional-validation step next, but
-  the plain `*_test`/`*_speed`/`*_stack` binaries call
-  `rng_get_random_blocking()` and will hang on real hardware until a
-  software entropy source replaces it. To be addressed before any
-  non-KAT live encaps/decaps demo.
-- Verified so far (host-side compilation only, board not yet flashed):
-  `crypto_kem_ml-kem-512_m4fspeed_testvectors.elf` (62,636 B text) and
-  `crypto_kem_ml-kem-512_m4fspeed_test.elf` (32,916 B text) both build
-  cleanly for `PLATFORM=nucleo-f411re` — comfortably inside the
-  F411RE's 512 KB flash / 128 KB RAM.
+  entropy dependency, used below), but the plain `*_test`/`*_speed`/
+  `*_stack` binaries call `rng_get_random_blocking()` and will hang on
+  real hardware until a software entropy source replaces it. To be
+  addressed before any non-KAT live encaps/decaps demo.
+- Two real, on-hardware bugs found and fixed getting here (both fixed in
+  the fork, see its commit history): the board's `clock_setup()` first
+  hung forever waiting on an HSE oscillator that isn't actually running
+  on this board (P1/freertos-stm32 already hit and worked around the
+  same issue with HSI — missed that the first time); and OpenOCD's
+  `program <file.bin> verify reset exit` with no explicit load address
+  intermittently flashed to the wrong address — switched to `.hex`
+  output (self-describing addresses), the same fix nucleo-l4r5zi already
+  uses upstream for the same reason.
+
+### First real result: functional validation on hardware
+
+```
+$ python3 testvectors.py --platform nucleo-f411re -u /dev/ttyACM0 \
+    ml-kem-512 ml-kem-768 ml-kem-1024
+...
+ml-kem-1024 - m4fspeed SUCCESSFUL
+ml-kem-1024 - m4fstack SUCCESSFUL
+ml-kem-512 - m4fspeed SUCCESSFUL
+ml-kem-512 - m4fstack SUCCESSFUL
+ml-kem-768 - m4fspeed SUCCESSFUL
+ml-kem-768 - m4fstack SUCCESSFUL
+ml-kem-1024 - clean SUCCESSFUL
+ml-kem-512 - clean SUCCESSFUL
+ml-kem-768 - clean SUCCESSFUL
+```
+
+All 9 implementations (3 parameter sets × `clean`/`m4fspeed`/`m4fstack`)
+flash to the real board and pass PQM4's own cross-check: the board
+generates keypair/ciphertext/shared-secret from a deterministic seed and
+PQM4's `testvectors.py` verifies them against the same computation run
+by the reference implementation on the host. This is functional
+correctness, not a side-channel result — no trace has been captured
+against any of these runs yet.
 
 ## Planned layout
 
@@ -74,10 +103,9 @@ until an actual command output is shown, exactly as in P6.**
 ## Next steps
 
 1. ~~Toolchain check (`arm-none-eabi-gcc`, OpenOCD) and PQM4 setup for
-   Cortex-M4.~~ Done — see above.
-2. First functional ML-KEM encaps/decaps run on the Nucleo-F411RE
-   (flash + run `*_testvectors`, known-answer-test validation) before
-   any side-channel work starts.
+   Cortex-M4.~~ Done.
+2. ~~First functional ML-KEM encaps/decaps run on the Nucleo-F411RE,
+   known-answer-test validation.~~ Done — see above.
 3. Trace acquisition setup once hardware is available at home.
 4. Leakage analysis (NTT, noise sampling, decapsulation), countermeasure
    evaluation if a leak is confirmed.
