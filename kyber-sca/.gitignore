@@ -1,6 +1,9 @@
 # Regenerable simulated data and plots -- see README.md for the exact
-# commands that produce them. Real captures go in traces/real/ and ARE
-# tracked (empty for now, kept via traces/real/.gitkeep).
+# commands that produce them. Real captures go in traces/real/ (power) and
+# traces/timing/ (timing, CSV) and ARE tracked; likewise results/timing/
+# (real plots). Only the power-axis simulated/regenerable files below are
+# ignored -- the patterns are non-recursive on purpose, so they don't touch
+# the timing/ subdirectories.
 traces/*.npz
 results/*.png
 __pycache__/

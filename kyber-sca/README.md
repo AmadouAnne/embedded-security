@@ -1,24 +1,31 @@
 # P8 — ML-KEM (Kyber) Side-Channel Analysis on STM32
 
-Power side-channel evaluation of ML-KEM (Kyber), built on [PQM4](https://github.com/mupq/pqm4)
-on a Cortex-M4 (Nucleo-F411RE, same board as [P1](../freertos-stm32)). Same methodology as
-[P6](../side-channel)'s AES-128 CPA: capture power traces during
+Side-channel evaluation of ML-KEM (Kyber), built on [PQM4](https://github.com/mupq/pqm4)
+on a Cortex-M4 (Nucleo-F411RE, same board as [P1](../freertos-stm32)), along
+two complementary axes: **power** (CPA, same methodology as
+[P6](../side-channel)'s AES-128 attack — capture power traces during
 encapsulation/decapsulation, build leakage hypotheses against the sensitive
-operations (NTT, noise sampling, decapsulation re-encryption check),
-correlate against real captures, and — if a leak is confirmed — evaluate a
-countermeasure. See [`docs/methodology.md`](docs/methodology.md) for the
-full scientific objective, threat model, and methodology.
+operations, correlate, evaluate a countermeasure if a leak is confirmed —
+blocked on acquisition hardware, see Status below) and **timing** (dudect
+methodology, Welch's t-test on `crypto_kem_dec` cycle counts — needs no
+external equipment, only the Cortex-M4's own DWT cycle counter, so it
+proceeds on the hardware already in hand). See
+[`docs/methodology.md`](docs/methodology.md) for the full scientific
+objective, threat model, and methodology for both.
 
 **Status: ML-KEM runs and is functionally validated on real Nucleo-F411RE
 hardware (all three parameter sets, cross-checked against the host
-reference implementation). The CPA/masking analysis pipeline is built and
-validated against simulated traces (same simulated-first approach P6
-used before real hardware access). No real power trace has been
-captured yet — no side-channel result about the real firmware exists.
-This README will be updated at each real milestone (first real trace
-capture, first leakage result on real traces) — nothing here should be
-read as a result about the actual hardware until an actual command
-output against real traces is shown.**
+reference implementation). Power side: the CPA/masking analysis pipeline
+is built and validated against simulated traces only (same simulated-first
+approach P6 used before real hardware access) — no real power trace has
+been captured yet, no side-channel result about the real firmware exists
+on that axis. Timing side: a real dudect campaign against real hardware
+has run (N=90,525 trials) — see
+[`timing/README.md`](timing/README.md) and
+[`docs/methodology.md`](docs/methodology.md) Section 5 for the actual
+command output. This README will be updated at each further real
+milestone — nothing here should be read as a result beyond what an actual
+command's output, shown either here or in the linked files, backs up.**
 
 - `arm-none-eabi-gcc` 16.2.0, OpenOCD 0.12.0, `make`, `cmake` — already
   present, nothing to install.
@@ -142,27 +149,74 @@ register widths, or instruction scheduling. Once real traces exist,
 them (same `.npz` contract: `traces` + `ciphertext_coeffs`, optionally
 `secret_coeffs` for scoring) — nothing in it is simulation-specific.
 
+### Timing-SCA: real dudect campaign on real hardware, zero measured variance
+
+Unlike the power axis above, this needs no acquisition equipment — only
+the Cortex-M4's own `DWT->CYCCNT` cycle counter, streamed over the board's
+existing USB-UART. Classic dudect fixed-vs-random design against
+`crypto_kem_dec` (`ml-kem-512`/`m4fspeed`): class 0 always decapsulates one
+fixed valid ciphertext, class 1 decapsulates a fresh random byte string
+each trial (almost certainly invalid, exercising the FO-transform implicit
+rejection path — the literature's highest-value target). See
+[`docs/methodology.md`](docs/methodology.md) Section 5 for the full
+methodology and [`timing/README.md`](timing/README.md) for exact commands.
+
+```
+$ python3 timing/welch_ttest.py traces/timing/run1_100k.csv
+class 0 (fixed):  n=  45057  mean=408562.000  var=0
+class 1 (random): n=  45467  mean=408562.000  var=0
+Welch's t-test: DEGENERATE (zero pooled variance -- both classes' cycle
+counts have zero within-class variance)...
+mean0 == mean1 exactly: no distinguishable timing difference was observed
+between the two classes at this sample size.
+```
+
+N=90,525 real trials: every single one, in both classes, took **exactly**
+408,562 cycles — zero variance, not just a low t-statistic. Checked against
+a control experiment (identical harness applied to `crypto_kem_keypair`,
+known to have data-dependent timing) to rule out a broken measurement
+before trusting this: N=5,000, 1,083 unique cycle-count values, clear real
+variance (see [`results/timing/keypair_control_hist.png`](results/timing/keypair_control_hist.png)).
+**Scoped result, not a general claim**: on this implementation, this
+board, this differential test, and this sample size, `crypto_kem_dec`
+shows no detectable cycle-count-level timing difference between accept and
+implicit-rejection paths — see [`timing/README.md`](timing/README.md)'s
+Next steps for what generalizing this further would need (larger N, other
+implementations/parameter sets, more differential ciphertext classes).
+
 ## Planned layout
 
 - `firmware/pqm4/` — PQM4 fork (submodule, see above), Cortex-M4
-  ML-KEM-512/768/1024 targets.
+  ML-KEM-512/768/1024 targets, plus the timing-SCA harness
+  (`common/dudect.c`, `common/keypair_control.c`, `mk/dudect.mk` — see
+  `firmware/dudect/README.md` for why these live in the fork's own
+  `common/` rather than a separate directory here).
 - `firmware/openocd/nucleo-f411re.cfg` — same file as
   [P1's](../freertos-stm32/openocd/stm32f4.cfg), already proven on this
   exact board.
 - `acquisition/` — trace capture scripts once the power measurement setup
   is available (oscilloscope/shunt — pending, see below). Not started.
+- `timing/` — dudect host-side pipeline (`capture.py`, `welch_ttest.py`,
+  `plot_tstat.py`, `plot_keypair_control.py`) — see
+  [`timing/README.md`](timing/README.md) and the results above. The
+  timing-axis counterpart to `analysis/` below.
 - `analysis/` — `kyber_math.py` (NTT-domain arithmetic + Hamming weight,
   role of [`side-channel/aes_sbox.py`](../side-channel/aes_sbox.py)),
   `simulate_traces.py`, `cpa_attack.py` (works on any `.npz` with
   `traces`/`ciphertext_coeffs`, real or simulated), `masking_demo.py` —
-  see the simulated-pipeline results above.
-- `traces/real/` — real captures once available (tracked via `.gitkeep`,
-  empty for now). `traces/*.npz` (simulated) gitignored, regenerable.
-- `results/` — plots, gitignored, regenerable from `analysis/`.
+  see the simulated-pipeline results above. Power-axis only; the timing
+  axis's analysis code lives in `timing/` instead.
+- `traces/real/` — real power captures once available (tracked via
+  `.gitkeep`, empty for now). `traces/*.npz` (simulated) gitignored,
+  regenerable. `traces/timing/` — real timing captures (CSV), tracked,
+  see the results above.
+- `results/` — power-axis plots, gitignored, regenerable from `analysis/`.
+  `results/timing/` — timing-axis plots, tracked (small PNGs from real
+  data, kept as evidence rather than regenerated silently).
 - `docs/methodology.md` — scientific objective, threat model, and
-  methodology notes, written up as we go — meant to be reused directly as
-  the basis for a paper draft (target: CASCADE, or IEEE Access / MDPI
-  Cryptography).
+  methodology notes for both axes, written up as we go — meant to be
+  reused directly as the basis for a paper draft (target: CASCADE, or
+  IEEE Access / MDPI Cryptography).
 
 ## Hardware
 
