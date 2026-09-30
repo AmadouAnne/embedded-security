@@ -1,0 +1,147 @@
+# Experimental campaign. Every run = one board reset + one configuration.
+# `defaults` fill hil/protocol.py:RunConfig; each scenario may override them.
+name = "campaign_v1"
+seed = 2027
+repetitions = 5
+
+[defaults]
+duration_ms = 120_000
+# Calibrated 2026-09-30 on NUCLEO-F411RE @100 MHz for ~45 % nominal load
+# (below the RM bound 6(2^(1/6)-1) = 73.5 %): sensor 512 FIR taps (~0.49 ms),
+# control 362 model iterations (~1.50 ms), nav 1334 sub-steps (~2.40 ms),
+# health 1500 x 64 B scrub (~2.65 ms); security checks the full image each job.
+work_units = [512, 362, 1334, 1500, 1, 0]
+sec_chunk_bytes = 65536   # >= image size: one full CRC-32 pass per job (~2.37 ms)
+attack_period_ms = 10
+# EWMA monitor, calibrated on C0 (analysis/calibrate_monitor.py, 2026-09-30,
+# data/processed/monitor_calibration.json) and FROZEN before the evaluation runs.
+# k and the sigma floor are at the edge of the pre-specified grid (reported).
+ewma_alpha = 0.02
+warmup_jobs = 200
+k_sigma = 2.0
+sigma_floor = 0.0
+guard_ratio = 0.8
+monitor_frozen = 1
+alarm_consec = 3
+
+# ---------------------------------------------------------------- E1 baseline
+# ~2700 s x ~382 jobs/s ~ 1.03e6 jobs over all tasks.
+[[scenario]]
+name = "E1_baseline"
+repetitions = 1
+config = { duration_ms = 2_700_000 }
+
+# Reference for all run-level comparisons (RQ2-RQ4): same duration and
+# repetitions as the attack scenarios, monitor off.
+[[scenario]]
+name = "E1_ref"
+
+# Monitor in detect mode on nominal traffic: false-positive rate + overhead (RQ3).
+[[scenario]]
+name = "E1_baseline_monitor"
+config = { monitor_mode = 1 }
+
+# ------------------------------------------------ E2 CPU exhaustion (RQ2)
+# Attack priority 15 = above everything, 13 = between Sensor/Control,
+# 9 = between Nav/Health, 3 = below Logging.
+[[scenario]]
+name = "E2_p13_l100"
+config = { attack_enable = 1, attack_prio = 13, attack_load_permille = 100 }
+[[scenario]]
+name = "E2_p13_l200"
+config = { attack_enable = 1, attack_prio = 13, attack_load_permille = 200 }
+[[scenario]]
+name = "E2_p13_l400"
+config = { attack_enable = 1, attack_prio = 13, attack_load_permille = 400 }
+[[scenario]]
+name = "E2_p13_l800"
+config = { attack_enable = 1, attack_prio = 13, attack_load_permille = 800 }
+[[scenario]]
+name = "E2_p9_l100"
+config = { attack_enable = 1, attack_prio = 9, attack_load_permille = 100 }
+[[scenario]]
+name = "E2_p9_l200"
+config = { attack_enable = 1, attack_prio = 9, attack_load_permille = 200 }
+[[scenario]]
+name = "E2_p9_l400"
+config = { attack_enable = 1, attack_prio = 9, attack_load_permille = 400 }
+[[scenario]]
+name = "E2_p9_l800"
+config = { attack_enable = 1, attack_prio = 9, attack_load_permille = 800 }
+[[scenario]]
+name = "E2_p3_l800"
+config = { attack_enable = 1, attack_prio = 3, attack_load_permille = 800 }
+
+# --------------------------------------------- E3 communication flooding
+[[scenario]]
+name = "E3_random_20k"
+flood = { kind = "random", rate_bps = 20_000 }
+[[scenario]]
+name = "E3_random_50k"
+flood = { kind = "random", rate_bps = 50_000 }
+[[scenario]]
+name = "E3_random_85k"
+flood = { kind = "random", rate_bps = 85_000 }
+[[scenario]]
+name = "E3_badcrc_85k"
+flood = { kind = "bad_crc", rate_bps = 85_000 }
+[[scenario]]
+name = "E3_oversize_85k"
+flood = { kind = "oversize", rate_bps = 85_000 }
+
+# ------------------------------------------------ E4 data perturbation
+[[scenario]]
+name = "E4_spike_1pct"
+perturbation = { kind = "spike", rate = 0.01, magnitude = 1000.0 }
+[[scenario]]
+name = "E4_spike_10pct"
+perturbation = { kind = "spike", rate = 0.10, magnitude = 1000.0 }
+[[scenario]]
+name = "E4_spike_50pct"
+perturbation = { kind = "spike", rate = 0.50, magnitude = 1000.0 }
+[[scenario]]
+name = "E4_nan_10pct"
+perturbation = { kind = "nan", rate = 0.10 }
+[[scenario]]
+name = "E4_stuckmax_100pct"
+perturbation = { kind = "stuck_max", rate = 1.0 }
+
+# -------------------------------------- E5 detection & mitigation (RQ3/RQ4)
+[[scenario]]
+name = "E5_E2_p13_l400_detect"
+config = { attack_enable = 1, attack_prio = 13, attack_load_permille = 400, monitor_mode = 1 }
+[[scenario]]
+name = "E5_E2_p13_l400_demote"
+config = { attack_enable = 1, attack_prio = 13, attack_load_permille = 400, monitor_mode = 2, mitigation_mask = 1 }
+[[scenario]]
+name = "E5_E2_p13_l800_demote"
+config = { attack_enable = 1, attack_prio = 13, attack_load_permille = 800, monitor_mode = 2, mitigation_mask = 1 }
+[[scenario]]
+name = "E5_E3_random_85k_detect"
+flood = { kind = "random", rate_bps = 85_000 }
+config = { monitor_mode = 1 }
+[[scenario]]
+name = "E5_E3_random_85k_throttle"
+flood = { kind = "random", rate_bps = 85_000 }
+config = { monitor_mode = 2, mitigation_mask = 2 }
+[[scenario]]
+name = "E5_E4_spike_50pct_guard"
+perturbation = { kind = "spike", rate = 0.50, magnitude = 1000.0 }
+config = { data_guard = 1 }
+[[scenario]]
+name = "E5_E4_spike_50pct_guard_detect"
+perturbation = { kind = "spike", rate = 0.50, magnitude = 1000.0 }
+config = { data_guard = 1, monitor_mode = 1 }
+
+# ------------------------------------ C0 monitor calibration (disjoint from E1/E5)
+# Parameters of the EWMA monitor are tuned offline on these runs, then frozen.
+[[scenario]]
+name = "C0_monitor_calibration"
+config = { monitor_mode = 1 }
+
+# ------------------------------------------- E6 EVT / pWCET (docs/analysis_plan.md §5)
+# Many short independent runs: the per-run maximum is the i.i.d. unit.
+[[scenario]]
+name = "E6_evt_nominal"
+repetitions = 200
+config = { duration_ms = 30_000 }

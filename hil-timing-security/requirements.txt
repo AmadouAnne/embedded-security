@@ -1,0 +1,11 @@
+numpy>=1.26
+pandas>=2.1
+matplotlib>=3.8
+pyserial>=3.5
+pytest>=8
+# interactive analysis (make lab)
+jupyterlab>=4.2
+seaborn>=0.13
+scipy>=1.13
+statsmodels>=0.14
+ipywidgets>=8

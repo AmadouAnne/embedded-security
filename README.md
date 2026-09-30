@@ -60,6 +60,12 @@ Post-quantum KEM side-channel evaluation, extending P6's methodology from AES-12
 
 ---
 
+### ⏱️ [P9 — Security-Aware Real-Time Execution: HIL Timing Evaluation](./hil-timing-security)
+Measures on real hardware how security events turn into timing violations on a hard real-time microcontroller. An avionics-inspired FreeRTOS workload (six rate-monotonic tasks, about 48 % nominal load) runs on a Nucleo-F411RE. A Linux host drives it through an ESP32-S3 transparent UART bridge, streaming 200 Hz sensor data and injecting three attack classes: a CPU-exhausting compromised partition, link flooding, and sensor-data perturbation. Every job's release, start, finish and execution time is recorded in core cycles. Execution time is accounted in the kernel's context-switch hooks, and the instrumentation measures and reports its own cost. Every run passes automatic integrity checks: contiguous job sequences, release spacing exact to the cycle, no lost records, and two independent CPU-load measurements that must agree. An EWMA timing monitor, bit-exact between the board and its host replay, was calibrated on runs kept separate from its evaluation, under an analysis plan written before any data were collected. The bring-up found and fixed four real measurement bugs. The ST-LINK virtual COM port was replaced after it was shown to drop bytes. The measurement campaign (E1–E6, about 7 h) is running; results will be added only from validated runs.  
+`C` `FreeRTOS` `STM32` `Cortex-M4` `DWT` `ESP32-S3` `Python` `HIL` `Real-Time` `EVT`
+
+---
+
 ## Research
 
 **Analyse de la pertinence des métriques système natives pour la détection d'anomalies sous Linux en environnements contraints**  
