@@ -49,7 +49,14 @@ is a direct 3.3 V UART to an **ESP32-S3 transparent bridge**
 |---|---|---|
 | D2 (PA10, USART1 RX) | ← | "TX" (GPIO43) |
 | D8 (PA9, USART1 TX)  | → | "RX" (GPIO44) |
-| (no ground jumper)   |   | common ground through the host USB (a separate jumper added UART noise: 1044 NE errors in 60 s vs 0 without) |
+| GND                  | — | GND |
+
+Three wires, including a direct GND–GND connection. During set-up, placements
+of the ground wire that were not verified to be on the NUCLEO GND pin gave 29
+to 1,044 UART noise flags (NE) per run. With the wire on GND, 2-minute test
+runs gave 0–1 noise flag per ~868,000 bytes and no corrupted frame. Every run
+records the UART noise, framing and overrun counts separately, and
+`analysis/validate.py` checks them.
 
 * The STM32 firmware is built with `-DLINK_UART=1`.
 * The bridge uses **TinyUSB CDC with `enableReboot(false)`**. In the default
