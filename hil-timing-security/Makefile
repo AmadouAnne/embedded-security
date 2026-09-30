@@ -1,7 +1,7 @@
 PY ?= .venv/bin/python
 CAMPAIGN ?= data/raw/campaign_v1
 
-.PHONY: deps firmware flash test figures paper lab pi-diag
+.PHONY: deps firmware flash test figures paper lab
 
 deps:
 	cd firmware && ./fetch_deps.sh
@@ -24,9 +24,3 @@ paper:
 
 lab:
 	$(PY) -m jupyter lab --notebook-dir=notebooks
-
-# Diagnostic: read the Raspberry Pi console through the STM32 (see hil/pi_console.py)
-pi-diag:
-	cmake -S firmware/tools/uart_bridge -B firmware/build_bridge && $(MAKE) -C firmware/build_bridge
-	st-flash --reset write firmware/build_bridge/uart_bridge.bin 0x08000000
-	$(PY) hil/pi_console.py --seconds 180

@@ -1,4 +1,4 @@
-"""Environment model run on the Raspberry Pi: a smooth, bounded flight profile
+"""Environment model run on the HIL host: a smooth, bounded flight profile
 producing IMU + barometer samples at 200 Hz, plus the E4 data-perturbation
 injector. Deterministic for a given seed so runs are reproducible."""
 from __future__ import annotations

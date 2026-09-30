@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""HIL orchestrator (runs on the Raspberry Pi).
+"""HIL orchestrator (runs on the host PC; the DUT link goes through the ESP32-S3 bridge).
 
 For every run of every scenario in a campaign file:
   reset DUT -> wait HELLO -> CONFIG -> START -> stream sensor data (+ E3/E4
@@ -164,13 +164,6 @@ class Flooder(threading.Thread):
                 time.sleep(ahead)
 
 
-def gpio_reset_cmd(gpio: int) -> str:
-    """Open-drain style reset with the Raspberry Pi `pinctrl` tool: drive the
-    line low for 20 ms, then release it as an input without pull, so the Pi
-    never drives NRST high (the ST-LINK and the reset button share the line)."""
-    return f"pinctrl set {gpio} op dl && sleep 0.02 && pinctrl set {gpio} ip pn"
-
-
 def default_port() -> str:
     """Link port by stable name: the ESP32-S3 bridge if present (campaign
     setup), else the ST-LINK virtual COM port (bench bring-up only)."""
@@ -283,8 +276,6 @@ def main() -> int:
     ap.add_argument("--out", type=Path, default=Path("../data/raw"))
     ap.add_argument("--only", nargs="*", help="run only these scenario names")
     ap.add_argument("--reset-cmd", default=os.environ.get("SARE_RESET_CMD", "st-flash --connect-under-reset reset"))
-    ap.add_argument("--reset-gpio", type=int, help="reset the DUT by pulling NRST low from this Pi GPIO "
-                    "(e.g. 17); overrides --reset-cmd. Check the wiring first with hil/check_reset_line.py")
     ap.add_argument("--dry-run", action="store_true", help="print the run plan and exit")
     ap.add_argument("--rerun-invalid", action="store_true",
                     help="re-run every run that fails validation; the invalid originals are kept in <out>/invalid/")
@@ -293,8 +284,6 @@ def main() -> int:
                     help="accept a DUT whose firmware differs from the local source tree (not for paper data)")
     args = ap.parse_args()
 
-    if args.reset_gpio is not None:
-        args.reset_cmd = gpio_reset_cmd(args.reset_gpio)
     camp = tomllib.loads(args.campaign.read_text())
     defaults, reps = camp.get("defaults", {}), camp.get("repetitions", 1)
     plan = [(sid, sc) for sid, sc in enumerate(camp["scenario"]) if not args.only or sc["name"] in args.only]

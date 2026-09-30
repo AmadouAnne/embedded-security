@@ -6,7 +6,7 @@ avionics-inspired FreeRTOS workload on an STM32 (Cortex-M4F).
 
 ```
 firmware/   FreeRTOS application for NUCLEO-F411RE (100 MHz) (CMake, arm-none-eabi-gcc)
-hil/        Raspberry Pi orchestrator: flight model, attack injection, trace capture
+hil/        host-side orchestrator (Linux PC): flight model, attack injection, trace capture
 analysis/   metrics (sare.py), IEEE-formatted figures (figures.py), tests
 paper/      IEEEtran manuscript (kept private until submission)
 data/raw/   per-run traces (*.trace.csv, *.stats.csv, *.meta.json) — not in git
@@ -31,7 +31,7 @@ data/raw/   per-run traces (*.trace.csv, *.stats.csv, *.meta.json) — not in gi
   *includes* ISR time, so link flooding shows up as execution-time inflation.
 * Each job produces a 24-byte record: task, flags (miss, alarm, mitigation,
   slow path, data reject), job index, release, start latency, response, exec,
-  monitor cost. The Logging task sends the records to the Pi over DMA.
+  monitor cost. The Logging task sends the records to the host over DMA.
 * The instrumentation costs a few hundred cycles per job, plus the Logging
   task's transfers. That is small but **not zero**: measure it and report it.
 * Observed maxima are **MOET**, not WCET bounds.
@@ -63,6 +63,9 @@ is a direct 3.3 V UART to an **ESP32-S3 transparent bridge**
 The original design used a Raspberry Pi 4 host. The unit available turned out
 to be defective: it read neither SD nor USB boot media, and even the EEPROM
 recovery never ran.
+Three firmware comments still say "Raspberry Pi" (`link.h`, `bsp_stm32f411.c`,
+`CMakeLists.txt`). They are left unchanged during the campaign because the
+firmware build ID is a hash of these sources, and it must match the flashed binary.
 
 ## Replicating
 
@@ -71,10 +74,10 @@ make deps            # pinned FreeRTOS / CMSIS sources + Python venv
 make firmware flash  # needs arm-none-eabi-gcc, cmake, stlink
 make test            # codec cross-check (C vs Python) + pipeline test
 
-# on the Raspberry Pi, DUT on /dev/ttyACM0 (ST-LINK VCP):
+# on the host PC (link port auto-detected: ESP32-S3 bridge by stable name):
 cd hil && python3 orchestrator.py campaign.toml --dry-run
-python3 orchestrator.py campaign.toml --port /dev/ttyACM0 --out ../data/raw
-#   --reset-cmd defaults to "st-flash --connect-under-reset reset"
+python3 orchestrator.py campaign.toml --out ../data/raw --rerun-invalid
+#   the DUT is reset through the ST-LINK before every run
 #   --only E1_baseline E2_p13_l400   to run a subset
 
 make figures         # tables -> data/processed, vector PDFs -> paper/figures
