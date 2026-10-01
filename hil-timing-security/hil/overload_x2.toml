@@ -1,0 +1,35 @@
+# X2 (exploratory, 2026-10-01): overload transition measured with post-run
+# counters. monitor_mode = 1 (detect only) with all tasks monitored, so the
+# monitor's per-task job counter n counts completed jobs even when no trace
+# reaches the host; it is read over the ST-LINK after each run
+# (hil/overload_readout.py). RTA predictions were written beforehand in
+# data/processed/rta_predictions_preregistered.json.
+name = "overload_x2"
+seed = 2027
+repetitions = 1
+
+[defaults]
+duration_ms = 60_000
+work_units = [512, 362, 1334, 1500, 1, 0]
+sec_chunk_bytes = 65536
+attack_period_ms = 10
+ewma_alpha = 0.02
+warmup_jobs = 200
+k_sigma = 2.0
+sigma_floor = 0.0
+guard_ratio = 0.8
+monitor_frozen = 1
+alarm_consec = 3
+
+[[scenario]]
+name = "X2_p13_l500_ctrl"
+config = { attack_enable = 1, attack_prio = 13, attack_load_permille = 500, monitor_mode = 1, monitor_task_mask = 127 }
+[[scenario]]
+name = "X2_p13_l600"
+config = { attack_enable = 1, attack_prio = 13, attack_load_permille = 600, monitor_mode = 1, monitor_task_mask = 127 }
+[[scenario]]
+name = "X2_p13_l700"
+config = { attack_enable = 1, attack_prio = 13, attack_load_permille = 700, monitor_mode = 1, monitor_task_mask = 127 }
+[[scenario]]
+name = "X2_p13_l800"
+config = { attack_enable = 1, attack_prio = 13, attack_load_permille = 800, monitor_mode = 1, monitor_task_mask = 127 }

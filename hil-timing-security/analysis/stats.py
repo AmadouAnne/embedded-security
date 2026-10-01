@@ -80,12 +80,15 @@ def compare_runs(baseline, scenario, metric: str, n_boot: int = 10_000, seed: in
     rng = np.random.default_rng(seed)
     ra = a[rng.integers(0, len(a), (n_boot, len(a)))].mean(axis=1)
     rb = b[rng.integers(0, len(b), (n_boot, len(b)))].mean(axis=1)
-    ratios = rb / ra
     d = cliffs_delta(b, a)
     p = stats.mannwhitneyu(b, a, alternative="two-sided").pvalue if len(a) > 1 and len(b) > 1 else np.nan
-    return Comparison(metric, float(a.mean()), float(b.mean()), float(b.mean() / a.mean()),
-                      (float(np.quantile(ratios, 0.025)), float(np.quantile(ratios, 0.975))),
-                      d, delta_magnitude(d), float(p))
+    if a.mean() > 0:            # a ratio is undefined for a zero baseline (callers then use diff_ci)
+        with np.errstate(divide="ignore", invalid="ignore"):   # resamples of all-zero runs
+            ratios = rb / ra
+        ratio, ci = float(b.mean() / a.mean()), (float(np.nanquantile(ratios, 0.025)), float(np.nanquantile(ratios, 0.975)))
+    else:
+        ratio, ci = np.nan, (np.nan, np.nan)
+    return Comparison(metric, float(a.mean()), float(b.mean()), ratio, ci, d, delta_magnitude(d), float(p))
 
 
 def diff_ci(baseline, scenario, n_boot: int = 10_000, seed: int = RNG_SEED) -> tuple[float, float, float]:

@@ -10,7 +10,8 @@ import sys
 from pathlib import Path
 
 import matplotlib
-matplotlib.use("Agg")
+if "ipykernel" not in sys.modules:      # scripts: files only; notebooks keep the inline backend
+    matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -39,7 +40,10 @@ INK, MUTED = "#1f1f1e", "#6b6a64"
 
 def save(fig, out: Path, name: str) -> None:
     fig.savefig(out / f"{name}.pdf")
-    plt.close(fig)
+    if "ipykernel" in sys.modules:
+        plt.show()                      # also display it inline in JupyterLab
+    else:
+        plt.close(fig)
 
 
 def fig_response_ecdf(tr, out, scenarios, tasks=("sensor", "control", "nav")):
@@ -83,6 +87,40 @@ def fig_e2_load(tm, out, prios=(13, 9, 3), task="control"):
     a2.set_xlabel("attack CPU demand (% of its period)")
     a1.legend(frameon=False)
     save(fig, out, "fig_e2_load")
+
+
+def fig_e2_transition(tr, out, prios=(13, 9), tasks=("control", "nav", "health", "security", "logging"),
+                      overload_pct=80, ref="E1_ref"):
+    """E2 + X1: worst response / deadline of every task vs attack load (mean of per-run
+    maxima, min-max over runs). Loads with no valid run are shaded as starvation."""
+    rmax = (tr[tr["task"].isin(tasks)].groupby(["scenario", "run", "task"], observed=True)["response_us"]
+            .max().reset_index())
+    rmax["task"] = rmax["task"].astype(str)
+    rmax["r_over_d"] = rmax["response_us"] / rmax["task"].map(lambda t: sare.PERIOD_MS[t] * 1e3)
+    fig, axes = plt.subplots(1, len(prios), figsize=(TEXT_W, 2.3), sharey=True)
+    for ax, p in zip(np.atleast_1d(axes), prios):
+        sel = rmax[rmax["scenario"].str.match(rf"(X1_)?E2_p{p}_l\d+$") | (rmax["scenario"] == ref)].copy()
+        sel["load"] = sel["scenario"].str.extract(r"_l(\d+)$")[0].astype(float).fillna(0) / 10
+        for i, task in enumerate(tasks):
+            g = sel[sel["task"] == task].groupby("load")["r_over_d"].agg(["mean", "min", "max"]).reset_index()
+            ax.errorbar(g["load"], g["mean"], yerr=[g["mean"] - g["min"], g["max"] - g["mean"]],
+                        color=SERIES[i % 5], marker=MARKERS[i % 5], linestyle=STYLES[i % 5],
+                        capsize=1.5, label=task.capitalize())
+        ax.axhline(1.0, color=INK, linewidth=0.8)
+        ax.text(1, 1.02, "deadline", color=INK, fontsize=6.5, va="bottom")
+        if p == prios[0]:
+            ax.axvspan(overload_pct - 5, overload_pct + 5, color=MUTED, alpha=0.15, linewidth=0)
+            ax.text(overload_pct, 0.5, "starvation:\nno trace\nreaches host", ha="center", va="center",
+                    fontsize=6.5, color=MUTED)
+        ax.set_xlim(-3, 88)
+        ax.set_ylim(0, 1.15)
+        ax.set_title(f"attacker priority {p}", fontsize=8)
+        ax.set_xlabel("attacker CPU demand (% of its 10 ms period)")
+    np.atleast_1d(axes)[0].set_ylabel(r"$R_{max}/D$")
+    handles, labels = np.atleast_1d(axes)[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=len(labels), frameon=False, bbox_to_anchor=(0.5, -0.04))
+    fig.subplots_adjust(bottom=0.32, wspace=0.08)
+    save(fig, out, "fig_e2_transition")
 
 
 def fig_cpu_load(st, out, scenarios):
@@ -158,6 +196,8 @@ def main() -> None:
     pick = lambda names: [s for s in names if s in present]
     fig_response_ecdf(tr, args.out, pick(["E1_baseline", "E2_p13_l400", "E3_random_85k", "E4_spike_50pct"]))
     fig_e2_load(tm, args.out)
+    if any(s.startswith(("E2_", "X1_")) for s in present):
+        fig_e2_transition(tr, args.out)
     fig_cpu_load(st, args.out, pick(["E1_baseline", "E2_p13_l400", "E2_p13_l800", "E3_random_85k", "E4_spike_50pct"]))
     fig_monitor_cost(tr, args.out)
     for sc in pick(["E5_E2_p13_l400_detect", "E5_E2_p13_l400_demote"]):
@@ -174,7 +214,7 @@ def main() -> None:
             t = cmp_[cmp_["metric"] == "R_max_us"].copy()
             t["ci"] = [f"[{lo:.2f}, {hi:.2f}]" for lo, hi in zip(t["ci_low"], t["ci_high"])]
             results.to_latex(t, {"scenario": "Scenario", "task": "Task", "estimate": r"$R_{max}$ ratio",
-                                 "ci": "95\,\% CI", "cliffs_delta": r"Cliff's $\delta$", "p_holm": "$p$ (Holm)"},
+                                 "ci": r"95\,\% CI", "cliffs_delta": r"Cliff's $\delta$", "p_holm": "$p$ (Holm)"},
                              args.latex / "tab_comparisons.tex",
                              "Worst observed response time relative to " + results.REF.replace("_", r"\_") + " (run-level, bootstrap CI)",
                              "tab:comparisons")

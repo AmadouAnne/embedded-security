@@ -145,3 +145,16 @@ config = { monitor_mode = 1 }
 name = "E6_evt_nominal"
 repetitions = 200
 config = { duration_ms = 30_000 }
+
+# --------------------------- X1 EXPLORATORY (added 2026-10-01, after the first E2 results)
+# E2 transition: where does the high-priority attacker start to break deadlines?
+# Nominal ~48 % + attacker load: 45 % -> ~93 %, 50 % -> ~98 % (still schedulable by
+# utilisation). Loads above ~52 % overload the workload and starve the Logging task;
+# they require the overload-observability protocol and are not listed here.
+# Reported as EXPLORATORY (decided after seeing E2), separate from the confirmatory results.
+[[scenario]]
+name = "X1_E2_p13_l450"
+config = { attack_enable = 1, attack_prio = 13, attack_load_permille = 450 }
+[[scenario]]
+name = "X1_E2_p13_l500"
+config = { attack_enable = 1, attack_prio = 13, attack_load_permille = 500 }

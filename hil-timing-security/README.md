@@ -94,6 +94,29 @@ make paper
 Every run is one board reset plus one configuration, with a fixed seed per run
 (`campaign.seed`, scenario, repetition), so any run can be reproduced on its own.
 
+## Data and reproduction of the ESL letter
+
+The measurements used by the letter submitted to IEEE Embedded Systems
+Letters (61 validated runs of E1, C0, E2 and X1, the X2 overload runs, every
+rejected run with its reason, the flashed firmware binary and the checksums)
+are archived on Zenodo: [doi:10.5281/zenodo.23079750](https://doi.org/10.5281/zenodo.23079750).
+From the unpacked record:
+
+```sh
+cd code/analysis
+python validate.py ../../raw/campaign_v1                       # 61/61 runs valid
+python figures.py ../../raw/campaign_v1 --out ../../results/figures \
+       --tables ../../processed --latex ../../results/tables  # tables + figures
+python x2_analysis.py ../../raw/overload_x2 ../../processed    # X2 overload table
+python esl_numbers.py ../../processed ../../results/tables     # every number quoted in the letter
+```
+
+`analysis/rta.py` compares the measured worst responses with fixed-priority
+response-time analysis fed with the measured execution times, without and with
+the measured kernel release latency. The X2 overload runs (`hil/overload_x2.*`)
+read the on-target monitor state over the ST-LINK after each run
+(`hil/overload_readout.py`).
+
 ## Before the campaign: calibration
 
 The `work_units` in `campaign.toml` set each task's computational cost. Tune

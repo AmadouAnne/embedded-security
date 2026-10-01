@@ -47,6 +47,15 @@ noise flags (NE) per received byte. For NE the value is recovered by
 framing or overrun error, any DUT→host loss, and any trace-record loss still
 invalidates a run. The per-run loss counts are published.
 
+**Amendment A2 (2026-09-30, during the evaluation campaign, before any
+analysis of E2 results).** Under E2 at priority 3 and 80 % load, the attacker
+itself is starved: it completes only part of its released jobs, and its
+response time grows beyond the check's range. The job-count and causality
+checks therefore apply to the six workload tasks only. For the attacker, the
+sequence must still be contiguous, and its completed-job count and maximum
+response are recorded and reported as outcomes. This affects no measurement
+of the workload tasks.
+
 Invalid runs are **re-run, not repaired**. Every invalid run and its failed
 checks are listed in the supplementary material (`validation.csv`). Figures
 refuse invalid runs unless explicitly overridden, and that override is never
@@ -133,3 +142,28 @@ command rebuilds them. The raw data, firmware build ID and host provenance
 are archived with a DOI. Threats to validity: a single MCU family and
 compiler configuration, a synthetic workload, modelled attacks, and a
 bring-up–derived calibration.
+
+## 9. Exploratory experiments (added after data collection started)
+
+- **X1 (2026-10-01):** E2 at priority 13 with 45 % and 50 % attacker load, to
+  locate the transition to deadline misses. It was added after the first E2
+  results, so it is reported as exploratory. Loads above about 52 % overload
+  the workload and starve the Logging task (see `overload_no_data/`); they need
+  the dedicated overload-observability protocol.
+- **RTA comparison (2026-10-01, 09:32):** classic fixed-priority RTA fed with
+  the measured MOET of each scenario, without and with the kernel release
+  latency (Sensor's worst start latency) as release jitter
+  (`analysis/rta.py`). Predictions for priority 13 at 50/60/70/80 % were
+  written to `data/processed/rta_predictions_preregistered.json` **before**
+  X2 was measured.
+- **X2 (2026-10-01, 09:54–10:03):** overload transition at priority 13, with
+  50 % (control) and 60/70/80 % attacker load, 2 runs of 60 s each
+  (`hil/overload_x2.toml`, `data/raw/overload_x2/`). The monitor runs in
+  detect-only mode on every task, and its per-task job counter is read over
+  the ST-LINK after each run. The control runs show that the counters equal
+  the trace counts. At 60–80 % the post-run counters are not used: once the
+  attacker stops at the end of the run, the starved tasks finish their
+  backlog before the readout. The overloaded runs fail validation by
+  construction (incomplete traces) and are reported descriptively from the
+  partial traces, which cover the first seconds before the trace channel
+  itself is starved.

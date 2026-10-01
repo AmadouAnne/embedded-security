@@ -9,7 +9,13 @@ import sare  # noqa: E402
 from synthetic import make_campaign  # noqa: E402
 
 
+def _paper_snapshot():
+    root = HERE.parent.parent / "paper"
+    return {f: f.stat().st_mtime_ns for d in ("tables", "figures") for f in (root / d).glob("*")}
+
+
 def test_metrics_and_figures(tmp_path):
+    before = _paper_snapshot()
     camp = tmp_path / "camp"
     make_campaign(camp)
     tr, st, metas = sare.load_campaign(camp)
@@ -40,7 +46,7 @@ def test_metrics_and_figures(tmp_path):
     evt_tex = (tex / "tab_evt.tex").read_text()
     assert r"\begin{tabular}" in evt_tex and "\t" not in evt_tex and r"$\mu$s" in evt_tex
     # synthetic data must never reach the manuscript folder
-    assert not (HERE.parent.parent / "paper" / "tables").exists()
+    assert _paper_snapshot() == before
 
 
 def test_validation_catches_corruption(tmp_path):

@@ -275,6 +275,7 @@ def main() -> int:
     ap.add_argument("--baud", type=int, default=921600)
     ap.add_argument("--out", type=Path, default=Path("../data/raw"))
     ap.add_argument("--only", nargs="*", help="run only these scenario names")
+    ap.add_argument("--skip", nargs="*", default=[], help="skip these scenario names")
     ap.add_argument("--reset-cmd", default=os.environ.get("SARE_RESET_CMD", "st-flash --connect-under-reset reset"))
     ap.add_argument("--dry-run", action="store_true", help="print the run plan and exit")
     ap.add_argument("--rerun-invalid", action="store_true",
@@ -286,7 +287,8 @@ def main() -> int:
 
     camp = tomllib.loads(args.campaign.read_text())
     defaults, reps = camp.get("defaults", {}), camp.get("repetitions", 1)
-    plan = [(sid, sc) for sid, sc in enumerate(camp["scenario"]) if not args.only or sc["name"] in args.only]
+    plan = [(sid, sc) for sid, sc in enumerate(camp["scenario"])
+            if (not args.only or sc["name"] in args.only) and sc["name"] not in args.skip]
 
     total_s = sum(sc.get("repetitions", reps) * build_config(defaults, sc, 0, 0).duration_ms / 1000 for _, sc in plan)
     print(f"{len(plan)} scenarios, ~{total_s / 3600:.1f} h of measurement")
@@ -326,6 +328,11 @@ def main() -> int:
                 print(f"{sc['name']:<28} run {run}: {meta['records']} records, "
                       f"{'VALID' if ok else 'INVALID'}{' (rerun)' if args.rerun_invalid else ''}", flush=True)
                 if ok:
+                    break
+                if meta["records"] == 0 or meta["end"] is None:
+                    # No trace data at all is not a link glitch: it is deterministic
+                    # (e.g. overload starving the Logging task). Retrying cannot help.
+                    print(f"{sc['name']:<28} run {run}: no data received, not retried", flush=True)
                     break
     return 0
 
